@@ -62,6 +62,22 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+
+    <!-- Indicator text style -->
+    <style name="FastScrollerColorFull" parent="Widget.IndicatorFastScroll.FastScroller">
+        <item name="android:textColor">#57B9FF</item>
+        <item name="android:textAppearance">@style/FastScrollerTextStyle</item>
+    </style>
+
+    <style name="FastScrollerTextStyle" parent="@android:style/TextAppearance.Material.Caption">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Indicator thumb text style -->
+    <style name="IndicatorThumbTextAppearance" parent="@android:style/TextAppearance.Material.Medium">
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="ActionModeTitleTextStyle" parent="@style/TextAppearance.Material3.ActionBar.Title">
         <item name="android:textColor">?android:textColorPrimary</item>
     </style>

@@ -11,35 +11,21 @@
         android:clipToPadding="false"
         android:paddingBottom="@dimen/floating_action_button_list_bottom_padding" />
 
-    <com.fissy.dialer.contactsfragment.FastScroller
-        android:id="@id/fast_scroller"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_marginTop="8.0dip"
-        android:layout_marginBottom="8.0dip"
-        android:clipChildren="false"
-        android:visibility="gone">
+    <com.reddit.indicatorfastscroll.FastScrollerView
+                android:id="@+id/fastscroller"
+                android:layout_width="@dimen/fast_scroller_view_dim"
+                android:layout_height="match_parent"
+                android:layout_gravity="top|end"
+                android:paddingTop="10dp"
+                android:paddingBottom="0dp" />
 
-        <TextView
-            android:id="@id/fast_scroller_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toLeftOf="@id/fast_scroller_scroll_bar"
-            android:background="@drawable/fast_scroller_container_background"
-            android:gravity="center"
-            android:textColor="?android:textColorPrimaryInverse"
-            android:textSize="48.0sp"
-            android:visibility="gone" />
-
-        <ImageView
-            android:id="@id/fast_scroller_scroll_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_marginLeft="8.0dip"
-            android:paddingRight="16.0dip"
-            android:src="@drawable/fast_scroller_scroll_bar" />
-    </com.fissy.dialer.contactsfragment.FastScroller>
+            <com.reddit.indicatorfastscroll.FastScrollerThumbView
+                android:id="@+id/fastscroller_thumb"
+                android:layout_width="56dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:layout_marginEnd="@dimen/fast_scroller_view_dim"
+                android:textAppearance="@style/IndicatorThumbTextAppearance" />
 
     <include layout="@layout/header" />
 

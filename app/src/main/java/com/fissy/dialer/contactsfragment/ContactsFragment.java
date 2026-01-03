@@ -304,82 +304,87 @@ public class ContactsFragment extends Fragment
 
                         // Only setup the fast scroller once to avoid "Only set this view's RecyclerView once!" error
                         if (!fastScrollerSetup) {
-                            // Provider: given a position, return the indicator item (Text)
-                            final Function1<Integer, FastScrollItemIndicator> provider = new Function1<Integer, FastScrollItemIndicator>() {
-                                @Override
-                                public FastScrollItemIndicator invoke(Integer position) {
-                                    String headerString = adapter.getHeaderString(position);
-                                    String text = "#";
-                                    if (headerString != null && !headerString.isEmpty()) {
-                                        text = headerString.substring(0, 1).toUpperCase();
-                                    }
-                                    return new FastScrollItemIndicator.Text(text);
-                                }
-                            };
-                            fastScroller.setupWithRecyclerView(recyclerView, provider);
-
-                            fastScrollerThumb.setupWithFastScroller(fastScroller);
-
-                            // Use public setter to disable default scroller and use custom behavior
                             try {
-                                fastScroller.setUseDefaultScroller(false);
-                            } catch (Throwable ignored) {
-                                // if method signature differs, ignore — behaviour may still be acceptable
-                            }
-
-                            // Register selection callback through public getter and add
-                            try {
-                                fastScroller.getItemIndicatorSelectedCallbacks().add(new FastScrollerView.ItemIndicatorSelectedCallback() {
+                                // Provider: given a position, return the indicator item (Text)
+                                final Function1<Integer, FastScrollItemIndicator> provider = new Function1<Integer, FastScrollItemIndicator>() {
                                     @Override
-                                    public void onItemIndicatorSelected(FastScrollItemIndicator indicator, int indicatorCenterY, int itemPosition) {
-
-                                        // Try to extract the indicator text via public getter
-                                        String indicatorText = null;
-                                        if (indicator instanceof FastScrollItemIndicator.Text) {
-                                            try {
-                                                indicatorText = ((FastScrollItemIndicator.Text) indicator).getText();
-                                            } catch (Throwable t) {
-                                                // can't extract text; leave null and fallback to itemPosition mapping
-                                                indicatorText = null;
-                                            }
+                                    public FastScrollItemIndicator invoke(Integer position) {
+                                        String headerString = adapter.getHeaderString(position);
+                                        String text = "#";
+                                        if (headerString != null && !headerString.isEmpty()) {
+                                            text = headerString.substring(0, 1).toUpperCase();
                                         }
+                                        return new FastScrollItemIndicator.Text(text);
+                                    }
+                                };
+                                fastScroller.setupWithRecyclerView(recyclerView, provider);
+                                fastScrollerThumb.setupWithFastScroller(fastScroller);
+                                
+                                // Mark as successfully set up after critical setup completes
+                                fastScrollerSetup = true;
 
-                                        int targetPos = RecyclerView.NO_POSITION;
+                                // Use public setter to disable default scroller and use custom behavior
+                                try {
+                                    fastScroller.setUseDefaultScroller(false);
+                                } catch (Throwable ignored) {
+                                    // if method signature differs, ignore — behaviour may still be acceptable
+                                }
 
-                                        if (indicatorText != null) {
-                                            indicatorText = indicatorText.trim().toUpperCase();
-                                            Integer mapped = indicatorIndexMap.get(indicatorText);
-                                            if (mapped != null) {
-                                                targetPos = mapped;
+                                // Register selection callback through public getter and add
+                                try {
+                                    fastScroller.getItemIndicatorSelectedCallbacks().add(new FastScrollerView.ItemIndicatorSelectedCallback() {
+                                        @Override
+                                        public void onItemIndicatorSelected(FastScrollItemIndicator indicator, int indicatorCenterY, int itemPosition) {
+
+                                            // Try to extract the indicator text via public getter
+                                            String indicatorText = null;
+                                            if (indicator instanceof FastScrollItemIndicator.Text) {
+                                                try {
+                                                    indicatorText = ((FastScrollItemIndicator.Text) indicator).getText();
+                                                } catch (Throwable t) {
+                                                    // can't extract text; leave null and fallback to itemPosition mapping
+                                                    indicatorText = null;
+                                                }
                                             }
-                                        }
 
-                                        // Fallback: use adapter-derived header for provided itemPosition to obtain a precise start pos
-                                        if (targetPos == RecyclerView.NO_POSITION && itemPosition >= 0 && itemPosition < itemCount) {
-                                            String derivedHeader = adapter.getHeaderString(itemPosition);
-                                            if (derivedHeader != null && !derivedHeader.isEmpty()) {
-                                                Integer mapped = indicatorIndexMap.get(derivedHeader.substring(0, 1).toUpperCase());
+                                            int targetPos = RecyclerView.NO_POSITION;
+
+                                            if (indicatorText != null) {
+                                                indicatorText = indicatorText.trim().toUpperCase();
+                                                Integer mapped = indicatorIndexMap.get(indicatorText);
                                                 if (mapped != null) {
                                                     targetPos = mapped;
+                                                }
+                                            }
+
+                                            // Fallback: use adapter-derived header for provided itemPosition to obtain a precise start pos
+                                            if (targetPos == RecyclerView.NO_POSITION && itemPosition >= 0 && itemPosition < itemCount) {
+                                                String derivedHeader = adapter.getHeaderString(itemPosition);
+                                                if (derivedHeader != null && !derivedHeader.isEmpty()) {
+                                                    Integer mapped = indicatorIndexMap.get(derivedHeader.substring(0, 1).toUpperCase());
+                                                    if (mapped != null) {
+                                                        targetPos = mapped;
+                                                    } else {
+                                                        targetPos = itemPosition;
+                                                    }
                                                 } else {
                                                     targetPos = itemPosition;
                                                 }
-                                            } else {
-                                                targetPos = itemPosition;
+                                            }
+
+                                            if (targetPos != RecyclerView.NO_POSITION) {
+                                                // Immediate jump to make scroller very responsive
+                                                manager.scrollToPositionWithOffset(targetPos, 0);
                                             }
                                         }
-
-                                        if (targetPos != RecyclerView.NO_POSITION) {
-                                            // Immediate jump to make scroller very responsive
-                                            manager.scrollToPositionWithOffset(targetPos, 0);
-                                        }
-                                    }
-                                });
-                            } catch (Throwable ignored) {
-                                // If the library API differs, we can't register; best-effort only.
+                                    });
+                                } catch (Throwable ignored) {
+                                    // If the library API differs, we can't register; best-effort only.
+                                }
+                            } catch (Exception e) {
+                                // If critical setup fails, log and allow retry on next load
+                                LogUtil.e("ContactsFragment.setupFastScroller", "Failed to setup fast scroller", e);
                             }
-                            
-                            fastScrollerSetup = true;
                         }
                     } else if (fastScroller != null) {
                         fastScroller.setVisibility(View.GONE);
@@ -409,6 +414,11 @@ public class ContactsFragment extends Fragment
      */
     @Override
     public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+        // Guard against calls after onDestroyView
+        if (manager == null || adapter == null || anchoredHeader == null) {
+            return;
+        }
+        
         int firstVisibleItem = manager.findFirstVisibleItemPosition();
         int firstCompletelyVisible = manager.findFirstCompletelyVisibleItemPosition();
         if (firstCompletelyVisible == RecyclerView.NO_POSITION) {

@@ -234,7 +234,8 @@ public class ContactsFragment extends Fragment
         super.onDestroyView();
         // Reset the flag so the fast scroller can be set up again when the view is recreated
         fastScrollerSetup = false;
-        // Clear references to views
+        // Clear view references to prevent memory leaks
+        // These will be reassigned in onCreateView when the view is recreated
         fastScroller = null;
         fastScrollerThumb = null;
         anchoredHeader = null;
@@ -321,6 +322,8 @@ public class ContactsFragment extends Fragment
                                 fastScrollerThumb.setupWithFastScroller(fastScroller);
                                 
                                 // Mark as successfully set up after critical setup completes
+                                // This prevents "Only set this view's RecyclerView once!" error on subsequent calls
+                                // Optional configuration below may fail without affecting basic functionality
                                 fastScrollerSetup = true;
 
                                 // Use public setter to disable default scroller and use custom behavior

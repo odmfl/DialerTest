@@ -117,17 +117,24 @@ public class InCallFragment extends Fragment
     private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
         new ActivityResultContracts.RequestMultiplePermissions(),
         grantResults -> {
-            android.util.Log.i("InCallFragment", "==========================================");
-            android.util.Log.i("InCallFragment", "PERMISSION RESULT RECEIVED");
-            android.util.Log.i("InCallFragment", "Permissions: " + grantResults);
-            android.util.Log.i("InCallFragment", "==========================================");
+            LogUtil.i("InCallFragment.permissionResult", "==========================================");
+            LogUtil.i("InCallFragment.permissionResult", "PERMISSION RESULT RECEIVED");
+            LogUtil.i("InCallFragment.permissionResult", "Permissions: " + grantResults);
+            LogUtil.i("InCallFragment.permissionResult", "==========================================");
             
-            boolean allGranted = grantResults.values().stream().allMatch(x -> x);
+            boolean allGranted = true;
+            for (Boolean granted : grantResults.values()) {
+                if (!granted) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            
             if (allGranted) {
-                android.util.Log.i("InCallFragment", "✓ All permissions granted - starting recording");
+                LogUtil.i("InCallFragment.permissionResult", "✓ All permissions granted - starting recording");
                 inCallButtonUiDelegate.callRecordClicked(true);
             } else {
-                android.util.Log.w("InCallFragment", "✗ Some permissions denied");
+                LogUtil.w("InCallFragment.permissionResult", "✗ Some permissions denied");
                 Toast.makeText(getContext(), R.string.call_recording_permission_denied, Toast.LENGTH_LONG).show();
             }
         });
@@ -565,10 +572,10 @@ public class InCallFragment extends Fragment
 
     @Override
     public void requestCallRecordingPermissions(String[] permissions) {
-        android.util.Log.i("InCallFragment", "==========================================");
-        android.util.Log.i("InCallFragment", "REQUESTING PERMISSIONS");
-        android.util.Log.i("InCallFragment", "Permissions: " + java.util.Arrays.toString(permissions));
-        android.util.Log.i("InCallFragment", "==========================================");
+        LogUtil.i("InCallFragment.requestPermissions", "==========================================");
+        LogUtil.i("InCallFragment.requestPermissions", "REQUESTING PERMISSIONS");
+        LogUtil.i("InCallFragment.requestPermissions", "Permissions: " + java.util.Arrays.toString(permissions));
+        LogUtil.i("InCallFragment.requestPermissions", "==========================================");
         
         permissionLauncher.launch(permissions);
     }

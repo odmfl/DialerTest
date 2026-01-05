@@ -266,8 +266,7 @@ public class InCallFragment extends Fragment
         
         // Add CallRecordButtonController and log its creation
         android.util.Log.i("InCallFragment", "Creating CallRecordButtonController...");
-        ButtonController callRecordController = new ButtonController.CallRecordButtonController(inCallButtonUiDelegate);
-        buttonControllers.add(callRecordController);
+        buttonControllers.add(new ButtonController.CallRecordButtonController(inCallButtonUiDelegate));
         android.util.Log.i("InCallFragment", "✓ CallRecordButtonController created and added to buttonControllers");
         android.util.Log.i("InCallFragment", "Total button controllers: " + buttonControllers.size());
 

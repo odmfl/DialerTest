@@ -84,10 +84,20 @@ public class CallRecorderService extends Service {
   }
 
   private int getAudioSource() {
-    // For Android 10+ (API 29+), use VOICE_COMMUNICATION for better call recording
+    // Try different audio sources in order of preference for non-rooted devices
+    // Starting with Android 9 (API 28), VOICE_CALL requires system privileges
+    
+    // For Android 12+ (API 31+), VOICE_RECOGNITION works best
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+      return MediaRecorder.AudioSource.VOICE_RECOGNITION;
+    }
+    
+    // For Android 10-11 (API 29-30), try VOICE_COMMUNICATION
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
       return MediaRecorder.AudioSource.VOICE_COMMUNICATION;
     }
+    
+    // For Android 9 and below, use MIC or config value
     return getResources().getInteger(R.integer.call_recording_audio_source);
   }
 
@@ -126,11 +136,67 @@ public class CallRecorderService extends Service {
     if (DBG) Log.d(TAG, "Starting recording");
 
     mMediaRecorder = new MediaRecorder();
+    
+    // Try multiple audio sources with fallback for non-rooted devices
+    boolean audioSourceSet = false;
+    int audioSource = -1;
+    
+    // Try the preferred audio source first
     try {
-      int audioSource = getAudioSource();
-      int formatChoice = getAudioFormatChoice();
-      if (DBG) Log.d(TAG, "Creating media recorder with audio source " + audioSource);
+      audioSource = getAudioSource();
+      if (DBG) Log.d(TAG, "Trying primary audio source: " + audioSource);
       mMediaRecorder.setAudioSource(audioSource);
+      audioSourceSet = true;
+      if (DBG) Log.d(TAG, "Successfully set audio source: " + audioSource);
+    } catch (IllegalStateException e) {
+      Log.w(TAG, "Primary audio source not available, trying fallbacks", e);
+      
+      // Clean up failed MediaRecorder
+      try {
+        mMediaRecorder.release();
+      } catch (Exception ex) {
+        // Ignore cleanup errors
+      }
+      
+      // Fallback 1: Try VOICE_RECOGNITION (most compatible for non-system apps)
+      try {
+        audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+        mMediaRecorder = new MediaRecorder();
+        mMediaRecorder.setAudioSource(audioSource);
+        audioSourceSet = true;
+        Log.d(TAG, "Using fallback VOICE_RECOGNITION audio source");
+      } catch (IllegalStateException e2) {
+        Log.w(TAG, "VOICE_RECOGNITION not available, trying MIC", e2);
+        
+        // Clean up failed MediaRecorder
+        try {
+          mMediaRecorder.release();
+        } catch (Exception ex) {
+          // Ignore cleanup errors
+        }
+        
+        // Fallback 2: Try MIC (works on all devices)
+        try {
+          audioSource = MediaRecorder.AudioSource.MIC;
+          mMediaRecorder = new MediaRecorder();
+          mMediaRecorder.setAudioSource(audioSource);
+          audioSourceSet = true;
+          Log.d(TAG, "Using fallback MIC audio source");
+        } catch (IllegalStateException e3) {
+          Log.e(TAG, "No audio source available", e3);
+        }
+      }
+    }
+    
+    if (!audioSourceSet) {
+      Log.e(TAG, "Failed to set any audio source");
+      mMediaRecorder.release();
+      mMediaRecorder = null;
+      return false;
+    }
+    
+    try {
+      int formatChoice = getAudioFormatChoice();
       mMediaRecorder.setOutputFormat(formatChoice == 0
           ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
       mMediaRecorder.setAudioEncoder(formatChoice == 0
@@ -143,7 +209,6 @@ public class CallRecorderService extends Service {
       }
     } catch (IllegalStateException e) {
       Log.w(TAG, "Error initializing media recorder", e);
-      mMediaRecorder.reset();
       mMediaRecorder.release();
       mMediaRecorder = null;
       return false;
@@ -172,14 +237,14 @@ public class CallRecorderService extends Service {
     } catch (RuntimeException e) {
       getContentResolver().delete(uri, null, null);
       // only catch exceptions thrown by the MediaRecorder JNI code
-      if (e.getMessage().indexOf("start failed") >= 0) {
+      String message = e.getMessage();
+      if (message != null && message.contains("start failed")) {
         Log.w(TAG, "Could not start recording", e);
       } else {
         throw e;
       }
     }
 
-    mMediaRecorder.reset();
     mMediaRecorder.release();
     mMediaRecorder = null;
 
@@ -192,7 +257,6 @@ public class CallRecorderService extends Service {
     if (mMediaRecorder != null) {
       try {
         mMediaRecorder.stop();
-        mMediaRecorder.reset();
         mMediaRecorder.release();
       } catch (IllegalStateException e) {
         Log.e(TAG, "Exception closing media recorder", e);

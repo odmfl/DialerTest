@@ -109,7 +109,7 @@ public class SmsBottomSheetFragment extends BottomSheetDialogFragment {
         textView.setPadding(padding, padding, padding, padding);
         textView.setBackground(background);
         textView.setTextColor(context.getColor(R.color.blue_grey_100));
-        textView.setTextAppearance(R.style.TextAppearance_AppCompat_Widget_PopupMenu_Large);
+        textView.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge);
 
         LayoutParams params =
                 new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
@@ -129,7 +129,7 @@ public class SmsBottomSheetFragment extends BottomSheetDialogFragment {
 
     @Override
     public int getTheme() {
-        return R.style.Theme_Design_Light_BottomSheetDialog;
+        return com.google.android.material.R.style.Theme_Material3_Light_BottomSheetDialog;
     }
 
     @Override

@@ -274,6 +274,16 @@ public class MainActivity extends TransactionSafeActivity
                 public void onDefaultDialerRoleResult(boolean granted) {
                     LogUtil.i("MainActivity", "Default dialer role granted: " + granted);
                 }
+
+                @Override
+                public void onFullScreenIntentPermissionResult(boolean granted) {
+                    // Not used for dialer role
+                }
+
+                @Override
+                public void onWriteSettingsPermissionResult(boolean granted) {
+                    // Not used for dialer role
+                }
             });
         }
     }

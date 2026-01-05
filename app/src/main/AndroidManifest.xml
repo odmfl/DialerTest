@@ -232,6 +232,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.fissy.dialer.diagnostics.RecordingDiagnosticsActivity"
+            android:exported="false"
+            android:label="@string/recording_diagnostics_title"
+            android:parentActivityName="com.fissy.dialer.app.settings.DialerSettingsActivity"
+            android:theme="@style/SettingsStyle" />
 
         <provider
             android:name="com.fissy.dialer.blocking.FilteredNumberProvider"

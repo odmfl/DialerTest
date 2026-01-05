@@ -183,6 +183,12 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
             aboutPhoneHeader.fragment = AboutPhoneFragment.class.getName();
             target.add(aboutPhoneHeader);
         }
+
+        // Add Developer Options
+        Header developerOptionsHeader = new Header();
+        developerOptionsHeader.titleRes = R.string.developer_options_title;
+        developerOptionsHeader.fragment = DeveloperSettingsFragment.class.getName();
+        target.add(developerOptionsHeader);
     }
 
     private void addVoicemailSettings(List<Header> target, boolean isPrimaryUser) {

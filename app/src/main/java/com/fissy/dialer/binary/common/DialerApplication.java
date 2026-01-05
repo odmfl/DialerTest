@@ -30,6 +30,7 @@ import com.fissy.dialer.calllog.config.CallLogConfigComponent;
 import com.fissy.dialer.common.LogUtil;
 import com.fissy.dialer.common.concurrent.DialerExecutorComponent;
 import com.fissy.dialer.inject.HasRootComponent;
+import com.fissy.dialer.logging.LogManager;
 import com.fissy.dialer.notification.NotificationChannelManager;
 import com.fissy.dialer.persistentlog.PersistentLogger;
 import com.fissy.dialer.strictmode.StrictModeComponent;
@@ -46,6 +47,10 @@ public abstract class DialerApplication extends Application implements HasRootCo
         Trace.beginSection("DialerApplication.onCreate");
         StrictModeComponent.get(this).getDialerStrictMode().onApplicationCreate(this);
         super.onCreate();
+        
+        // Initialize LogManager
+        LogManager.getInstance().init(this);
+        
         new BlockedNumbersAutoMigrator(
                 this.getApplicationContext(),
                 new FilteredNumberAsyncQueryHandler(this),

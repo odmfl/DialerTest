@@ -1065,4 +1065,12 @@
     <string name="permission_settings_button">Open Settings</string>
     <string name="permission_rationale_title">Permissions Required</string>
     <string name="permission_rationale_message">Some permissions are required for the app to work properly. Please grant them in settings.</string>
+    
+    <!-- Log Export and Diagnostics -->
+    <string name="recording_diagnostics_title">Recording Diagnostics</string>
+    <string name="export_logs_title">Export App Logs</string>
+    <string name="export_logs_summary">Save and share app logs for debugging</string>
+    <string name="view_logs_title">View Live Logs</string>
+    <string name="recording_diagnostics_summary">Check call recording setup and permissions</string>
+    <string name="developer_options_title">Developer Options</string>
 </resources>

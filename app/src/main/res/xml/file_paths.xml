@@ -7,4 +7,7 @@
     <external-path
         name="recordings"
         path="CallRecordings/" />
+    <external-files-path 
+        name="logs" 
+        path="DialerLogs/" />
 </paths>

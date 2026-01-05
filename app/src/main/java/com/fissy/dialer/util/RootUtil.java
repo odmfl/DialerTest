@@ -48,7 +48,7 @@ public class RootUtil {
     private static boolean checkRootMethod2() {
         Process process = null;
         try {
-            process = Runtime.getRuntime().exec(new String[] { "/system/xbin/which", "su" });
+            process = Runtime.getRuntime().exec(new String[] { "which", "su" });
             BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = in.readLine();
             if (line != null) {

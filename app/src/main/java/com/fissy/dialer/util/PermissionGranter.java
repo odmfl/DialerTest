@@ -3,6 +3,8 @@ package com.fissy.dialer.util;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.util.Log;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Handles granting CAPTURE_AUDIO_OUTPUT permission on rooted devices.
@@ -10,6 +12,9 @@ import android.util.Log;
 public class PermissionGranter {
     private static final String TAG = "PermissionGranter";
     private static final String PERMISSION_CAPTURE_AUDIO_OUTPUT = "android.permission.CAPTURE_AUDIO_OUTPUT";
+    
+    // Single thread executor for background operations
+    private static final Executor BACKGROUND_EXECUTOR = Executors.newSingleThreadExecutor();
     
     /**
      * Attempt to grant CAPTURE_AUDIO_OUTPUT permission if device is rooted.
@@ -22,9 +27,12 @@ public class PermissionGranter {
         
         String packageName = context.getPackageName();
         
-        // Validate package name format (basic validation to prevent command injection)
-        if (packageName == null || !packageName.matches("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*$")) {
-            Log.e(TAG, "Invalid package name format: " + packageName);
+        // Validate package name format to prevent command injection
+        // Package names should contain alphanumeric, dots, and underscores
+        if (packageName == null || packageName.isEmpty() || 
+            !packageName.matches("^[a-zA-Z0-9_.]+$") ||
+            packageName.contains("..") || packageName.startsWith(".") || packageName.endsWith(".")) {
+            Log.e(TAG, "Invalid or potentially malicious package name: " + packageName);
             Log.i(TAG, "==========================================");
             return;
         }
@@ -94,16 +102,19 @@ public class PermissionGranter {
      * This method runs the check on a background thread to avoid blocking the main thread.
      */
     public static void attemptGrantCaptureAudioOutput(Context context) {
-        // Run on a background thread to avoid ANRs
-        new Thread(new Runnable() {
+        // Use application context to avoid potential memory leaks
+        final Context appContext = context.getApplicationContext();
+        
+        // Run on background executor to avoid ANRs
+        BACKGROUND_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    attemptGrantCaptureAudioOutputSync(context);
+                    attemptGrantCaptureAudioOutputSync(appContext);
                 } catch (Exception e) {
                     Log.e(TAG, "Error in background root permission grant", e);
                 }
             }
-        }, "RootPermissionGranter").start();
+        });
     }
 }

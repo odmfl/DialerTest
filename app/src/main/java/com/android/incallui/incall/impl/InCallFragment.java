@@ -155,12 +155,19 @@ public class InCallFragment extends Fragment
             @NonNull LayoutInflater layoutInflater,
             @Nullable ViewGroup viewGroup,
             @Nullable Bundle bundle) {
+        android.util.Log.i("InCallFragment", "==========================================");
+        android.util.Log.i("InCallFragment", "ON CREATE VIEW");
+        android.util.Log.i("InCallFragment", "==========================================");
         LogUtil.i("InCallFragment.onCreateView", null);
         getActivity().setTheme(R.style.Theme_InCallScreen);
         // Bypass to avoid StrictModeResourceMismatchViolation
         final View view =
                 StrictModeUtils.bypass(
                         () -> layoutInflater.inflate(R.layout.frag_incall_voice, viewGroup, false));
+        
+        android.util.Log.i("InCallFragment", "View created: " + (view != null ? "valid" : "null"));
+        android.util.Log.i("InCallFragment", "==========================================");
+        
         contactGridManager =
                 new ContactGridManager(
                         view,
@@ -214,6 +221,7 @@ public class InCallFragment extends Fragment
 
     @Override
     public void onResume() {
+        android.util.Log.i("InCallFragment", "onResume() called");
         super.onResume();
         inCallButtonUiDelegate.refreshMuteState();
         inCallScreenDelegate.onInCallScreenResumed();
@@ -221,6 +229,10 @@ public class InCallFragment extends Fragment
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle bundle) {
+        android.util.Log.i("InCallFragment", "==========================================");
+        android.util.Log.i("InCallFragment", "ON VIEW CREATED");
+        android.util.Log.i("InCallFragment", "View ID: " + view.getId());
+        android.util.Log.i("InCallFragment", "==========================================");
         LogUtil.i("InCallFragment.onViewCreated", null);
         super.onViewCreated(view, bundle);
         inCallScreenDelegate =
@@ -244,12 +256,38 @@ public class InCallFragment extends Fragment
                 new ButtonController.SwitchToSecondaryButtonController(inCallScreenDelegate));
         buttonControllers.add(new ButtonController.CallRecordButtonController(inCallButtonUiDelegate));
 
+        // Log all views in the layout for diagnostics
+        android.util.Log.i("InCallFragment", "Inspecting layout for diagnostic purposes...");
+        logAllViewIds(view);
+        
+        // Note: Call record button is dynamically assigned to one of incall_*_button slots
+        // It's not a fixed ID like 'callRecordButton' but managed through ButtonController
+        android.util.Log.i("InCallFragment", "==========================================");
+        android.util.Log.i("InCallFragment", "BUTTON CONTROLLER STATUS");
+        
+        // Safely check if CallRecordButtonController was added
+        boolean hasRecordController = false;
+        for (ButtonController controller : buttonControllers) {
+            if (controller.getInCallButtonId() == InCallButtonIds.BUTTON_RECORD_CALL) {
+                hasRecordController = true;
+                break;
+            }
+        }
+        android.util.Log.i("InCallFragment", "CallRecordButtonController added: " + (hasRecordController ? "✓" : "✗"));
+        android.util.Log.i("InCallFragment", "Total button controllers: " + buttonControllers.size());
+        android.util.Log.i("InCallFragment", "Note: Record button is dynamically assigned to incall_*_button slots");
+        android.util.Log.i("InCallFragment", "==========================================");
+        
+        android.util.Log.i("InCallFragment", "onViewCreated() completed");
+        android.util.Log.i("InCallFragment", "==========================================");
+
         inCallScreenDelegate.onInCallScreenDelegateInit(this);
         inCallScreenDelegate.onInCallScreenReady();
     }
 
     @Override
     public void onPause() {
+        android.util.Log.i("InCallFragment", "onPause() called");
         super.onPause();
         inCallScreenDelegate.onInCallScreenPaused();
     }
@@ -630,5 +668,76 @@ public class InCallFragment extends Fragment
 
     private Fragment getLocationFragment() {
         return getChildFragmentManager().findFragmentById(R.id.incall_location_holder);
+    }
+    
+    /**
+     * Helper method to log all view IDs in the layout for diagnostic purposes
+     */
+    private void logAllViewIds(View view) {
+        logAllViewIds(view, 0);
+    }
+    
+    /**
+     * Helper method to log all view IDs in the layout for diagnostic purposes
+     * @param view The view to inspect
+     * @param depth Current recursion depth
+     */
+    private void logAllViewIds(View view, int depth) {
+        // Limit recursion depth to prevent stack overflow and excessive logging
+        final int MAX_DEPTH = 10;
+        
+        if (depth == 0) {
+            android.util.Log.i("InCallFragment", "==========================================");
+            android.util.Log.i("InCallFragment", "ALL VIEWS IN LAYOUT:");
+            android.util.Log.i("InCallFragment", "==========================================");
+        }
+        
+        if (depth >= MAX_DEPTH) {
+            android.util.Log.i("InCallFragment", "Max depth reached, stopping recursion");
+            return;
+        }
+        
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                StringBuilder logMessage = new StringBuilder();
+                
+                // Add indentation
+                for (int j = 0; j < depth * 2; j++) {
+                    logMessage.append(" ");
+                }
+                logMessage.append("View #").append(i).append(": ");
+                
+                try {
+                    // Wrap entire block in try-catch in case getId() throws exception
+                    // Note: getResourceEntryName() is expensive but acceptable here since this
+                    // diagnostic logging only runs once during onViewCreated, not in hot paths
+                    if (child.getId() != View.NO_ID) {
+                        String idName = getResources().getResourceEntryName(child.getId());
+                        logMessage.append(idName);
+                    } else {
+                        logMessage.append("NO_ID");
+                    }
+                    logMessage.append(" (").append(child.getClass().getSimpleName()).append(")");
+                } catch (Exception e) {
+                    logMessage.append("Error getting ID (")
+                              .append(child.getClass().getSimpleName())
+                              .append("): ")
+                              .append(e.getMessage());
+                }
+                
+                android.util.Log.i("InCallFragment", logMessage.toString());
+                
+                if (child instanceof ViewGroup) {
+                    logAllViewIds(child, depth + 1);  // Recursive with depth tracking
+                }
+            }
+        }
+        
+        if (depth == 0) {
+            android.util.Log.i("InCallFragment", "==========================================");
+        }
     }
 }

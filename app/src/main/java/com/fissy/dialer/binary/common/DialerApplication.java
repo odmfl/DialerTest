@@ -44,6 +44,10 @@ public abstract class DialerApplication extends Application implements HasRootCo
 
     @Override
     public void onCreate() {
+        android.util.Log.i("DialerApplication", "==========================================");
+        android.util.Log.i("DialerApplication", "APPLICATION CREATED");
+        android.util.Log.i("DialerApplication", "Package: " + getPackageName());
+        android.util.Log.i("DialerApplication", "==========================================");
         Trace.beginSection("DialerApplication.onCreate");
         StrictModeComponent.get(this).getDialerStrictMode().onApplicationCreate(this);
         super.onCreate();
@@ -62,6 +66,9 @@ public abstract class DialerApplication extends Application implements HasRootCo
         if (BuildCompat.isAtLeastO()) {
             NotificationChannelManager.initChannels(this);
         }
+        
+        android.util.Log.i("DialerApplication", "Application onCreate() completed");
+        android.util.Log.i("DialerApplication", "==========================================");
         Trace.endSection();
     }
 

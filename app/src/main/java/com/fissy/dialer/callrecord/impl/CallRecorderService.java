@@ -54,7 +54,7 @@ public class CallRecorderService extends Service {
   private final ICallRecorderService.Stub mBinder = new ICallRecorderService.Stub() {
     @Override
     public CallRecording stopRecording() {
-      Log.d(TAG, "AIDL stopRecording called");
+      Log.i(TAG, "AIDL stopRecording called");
       return stopRecordingInternal();
     }
 
@@ -64,20 +64,24 @@ public class CallRecorderService extends Service {
       String maskedNumber = phoneNumber != null && phoneNumber.length() > 4
           ? "***" + phoneNumber.substring(phoneNumber.length() - 4)
           : "****";
-      Log.d(TAG, "AIDL startRecording called - phoneNumber: " + maskedNumber + ", time: " + creationTime);
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "AIDL START RECORDING CALLED");
+      Log.i(TAG, "Phone: " + maskedNumber);
+      Log.i(TAG, "Time: " + creationTime);
+      Log.i(TAG, "==========================================");
       return startRecordingInternal(phoneNumber, creationTime);
     }
 
     @Override
     public boolean isRecording() throws RemoteException {
       boolean recording = mMediaRecorder != null;
-      Log.d(TAG, "AIDL isRecording called - result: " + recording);
+      Log.i(TAG, "AIDL isRecording called - result: " + recording);
       return recording;
     }
 
     @Override
     public CallRecording getActiveRecording() throws RemoteException {
-      Log.d(TAG, "AIDL getActiveRecording called - result: " + (mCurrentRecording != null ? "recording active" : "null"));
+      Log.i(TAG, "AIDL getActiveRecording called - result: " + (mCurrentRecording != null ? "recording active" : "null"));
       return mCurrentRecording;
     }
   };
@@ -85,12 +89,17 @@ public class CallRecorderService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
-    Log.d(TAG, "Service created");
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "SERVICE CREATED");
+    Log.i(TAG, "==========================================");
   }
 
   @Override
   public IBinder onBind(Intent intent) {
-    Log.d(TAG, "Service bound with intent: " + intent);
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "SERVICE BIND CALLED");
+    Log.i(TAG, "Intent: " + intent);
+    Log.i(TAG, "==========================================");
     return mBinder;
   }
 
@@ -135,20 +144,24 @@ public class CallRecorderService extends Service {
     String maskedNumber = phoneNumber != null && phoneNumber.length() > 4
         ? "***" + phoneNumber.substring(phoneNumber.length() - 4)
         : "****";
-    Log.d(TAG, "startRecordingInternal called - phoneNumber: " + maskedNumber + ", creationTime: " + creationTime);
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "START RECORDING INTERNAL");
+    Log.i(TAG, "Phone: " + maskedNumber);
+    Log.i(TAG, "Already recording: " + (mMediaRecorder != null));
+    Log.i(TAG, "==========================================");
     
     if (mMediaRecorder != null) {
-      Log.w(TAG, "Start called with recording in progress, stopping current recording");
+      Log.i(TAG, "⚠ Start called with recording in progress, stopping current recording");
       stopRecordingInternal();
     }
 
     if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
         != PackageManager.PERMISSION_GRANTED) {
-      Log.e(TAG, "Record audio permission not granted, can't record call");
+      Log.e(TAG, "✗ Record audio permission not granted, can't record call");
       return false;
     }
 
-    Log.d(TAG, "Starting recording - initializing MediaRecorder");
+    Log.i(TAG, "✓ Starting recording - initializing MediaRecorder");
 
     mMediaRecorder = new MediaRecorder();
     
@@ -159,12 +172,12 @@ public class CallRecorderService extends Service {
     // Try the preferred audio source first
     try {
       audioSource = getAudioSource();
-      Log.d(TAG, "Trying primary audio source: " + audioSource);
+      Log.i(TAG, "Trying primary audio source: " + audioSource);
       mMediaRecorder.setAudioSource(audioSource);
       audioSourceSet = true;
-      Log.d(TAG, "Successfully set audio source: " + audioSource);
+      Log.i(TAG, "✓ Successfully set audio source: " + audioSource);
     } catch (IllegalStateException e) {
-      Log.w(TAG, "Primary audio source not available, trying fallbacks", e);
+      Log.i(TAG, "⚠ Primary audio source not available, trying fallbacks", e);
       
       // Clean up failed MediaRecorder
       try {
@@ -179,9 +192,9 @@ public class CallRecorderService extends Service {
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(audioSource);
         audioSourceSet = true;
-        Log.d(TAG, "Using fallback VOICE_RECOGNITION audio source");
+        Log.i(TAG, "✓ Using fallback VOICE_RECOGNITION audio source");
       } catch (IllegalStateException e2) {
-        Log.w(TAG, "VOICE_RECOGNITION not available, trying MIC", e2);
+        Log.i(TAG, "⚠ VOICE_RECOGNITION not available, trying MIC", e2);
         
         // Clean up failed MediaRecorder
         try {
@@ -196,15 +209,15 @@ public class CallRecorderService extends Service {
           mMediaRecorder = new MediaRecorder();
           mMediaRecorder.setAudioSource(audioSource);
           audioSourceSet = true;
-          Log.d(TAG, "Using fallback MIC audio source");
+          Log.i(TAG, "✓ Using fallback MIC audio source");
         } catch (IllegalStateException e3) {
-          Log.e(TAG, "No audio source available", e3);
+          Log.e(TAG, "✗ No audio source available", e3);
         }
       }
     }
     
     if (!audioSourceSet) {
-      Log.e(TAG, "Failed to set any audio source");
+      Log.e(TAG, "✗ Failed to set any audio source");
       mMediaRecorder.release();
       mMediaRecorder = null;
       return false;
@@ -212,7 +225,7 @@ public class CallRecorderService extends Service {
     
     try {
       int formatChoice = getAudioFormatChoice();
-      Log.d(TAG, "Setting output format - choice: " + formatChoice);
+      Log.i(TAG, "Setting output format - choice: " + formatChoice);
       mMediaRecorder.setOutputFormat(formatChoice == 0
           ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
       mMediaRecorder.setAudioEncoder(formatChoice == 0
@@ -224,17 +237,17 @@ public class CallRecorderService extends Service {
         mMediaRecorder.setAudioSamplingRate(44100);
       }
     } catch (IllegalStateException e) {
-      Log.e(TAG, "Error initializing media recorder", e);
+      Log.e(TAG, "✗ Error initializing media recorder", e);
       mMediaRecorder.release();
       mMediaRecorder = null;
       return false;
     }
 
     String fileName = generateFilename(phoneNumber);
-    Log.d(TAG, "Generated filename: " + fileName);
+    Log.i(TAG, "Generated filename: " + fileName);
     Uri uri = getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             CallRecording.generateMediaInsertValues(fileName, creationTime));
-    Log.d(TAG, "Created media store entry: " + uri);
+    Log.i(TAG, "Created media store entry: " + uri);
 
     try {
       ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
@@ -242,25 +255,26 @@ public class CallRecorderService extends Service {
         throw new IOException("Opening file for URI " + uri + " failed");
       }
       mMediaRecorder.setOutputFile(pfd.getFileDescriptor());
-      Log.d(TAG, "MediaRecorder configured, preparing...");
+      Log.i(TAG, "MediaRecorder configured, preparing...");
       mMediaRecorder.prepare();
-      Log.d(TAG, "MediaRecorder prepared, starting...");
+      Log.i(TAG, "MediaRecorder prepared, starting...");
       mMediaRecorder.start();
 
       long mediaId = Long.parseLong(uri.getLastPathSegment());
       mCurrentRecording = new CallRecording(phoneNumber, creationTime,
               fileName, System.currentTimeMillis(), mediaId);
-      Log.d(TAG, "Recording started successfully: " + mCurrentRecording.toString());
+      Log.i(TAG, "✓✓✓ RECORDING STARTED SUCCESSFULLY ✓✓✓");
+      Log.i(TAG, "Recording info: " + mCurrentRecording.toString());
       return true;
     } catch (IOException | IllegalStateException e) {
-      Log.e(TAG, "Could not start recording", e);
+      Log.e(TAG, "✗ Could not start recording", e);
       getContentResolver().delete(uri, null, null);
     } catch (RuntimeException e) {
       getContentResolver().delete(uri, null, null);
       // only catch exceptions thrown by the MediaRecorder JNI code
       String message = e.getMessage();
       if (message != null && message.contains("start failed")) {
-        Log.e(TAG, "Could not start recording", e);
+        Log.e(TAG, "✗ Could not start recording", e);
       } else {
         throw e;
       }
@@ -274,26 +288,28 @@ public class CallRecorderService extends Service {
 
   private synchronized CallRecording stopRecordingInternal() {
     CallRecording recording = mCurrentRecording;
-    Log.d(TAG, "stopRecordingInternal called");
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "STOP RECORDING INTERNAL CALLED");
+    Log.i(TAG, "==========================================");
     if (mMediaRecorder != null) {
       try {
-        Log.d(TAG, "Stopping MediaRecorder");
+        Log.i(TAG, "Stopping MediaRecorder");
         mMediaRecorder.stop();
         mMediaRecorder.release();
-        Log.d(TAG, "MediaRecorder stopped and released");
+        Log.i(TAG, "✓ MediaRecorder stopped and released");
       } catch (IllegalStateException e) {
-        Log.e(TAG, "Exception closing media recorder", e);
+        Log.e(TAG, "✗ Exception closing media recorder", e);
       }
 
       Uri uri = ContentUris.withAppendedId(
           MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mCurrentRecording.mediaId);
       getContentResolver().update(uri, CallRecording.generateCompletedValues(), null, null);
-      Log.d(TAG, "Updated media store entry to completed");
+      Log.i(TAG, "✓ Updated media store entry to completed");
 
       mMediaRecorder = null;
       mCurrentRecording = null;
     } else {
-      Log.w(TAG, "MediaRecorder is null in stopRecordingInternal");
+      Log.i(TAG, "⚠ MediaRecorder is null in stopRecordingInternal");
     }
     return recording;
   }
@@ -301,7 +317,9 @@ public class CallRecorderService extends Service {
   @Override
   public void onDestroy() {
     super.onDestroy();
-    Log.d(TAG, "Service destroyed");
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "SERVICE DESTROYED");
+    Log.i(TAG, "==========================================");
   }
 
   private String generateFilename(String number) {

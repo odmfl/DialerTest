@@ -18,11 +18,14 @@ package com.android.incallui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Trace;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.InCallService;
+import android.util.Log;
 
 import com.android.incallui.audiomode.AudioModeProvider;
 import com.android.incallui.call.CallList;
@@ -42,6 +45,7 @@ import com.fissy.dialer.feedback.FeedbackComponent;
  */
 public class InCallServiceImpl extends InCallService {
 
+    private static final String TAG = "InCallServiceImpl";
     private ReturnToCallController returnToCallController;
     private CallList.Listener feedbackListener;
     // We only expect there to be one speakEasyCallManager to be instantiated at a time.
@@ -90,12 +94,31 @@ public class InCallServiceImpl extends InCallService {
     @Override
     public void onCreate() {
         super.onCreate();
+        
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "IN-CALL SERVICE CREATED");
+        Log.i(TAG, "==========================================");
+        
         this.speakEasyCallManager = SpeakEasyComponent.get(this).speakEasyCallManager();
+        
+        // Initialize CallRecorder early
+        try {
+            CallRecorder recorder = CallRecorder.getInstance();
+            Log.i(TAG, "CallRecorder instance obtained: " + (recorder != null ? "✓" : "✗"));
+        } catch (Exception e) {
+            Log.e(TAG, "✗ ERROR getting CallRecorder instance", e);
+        }
+        
+        Log.i(TAG, "==========================================");
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         Trace.beginSection("InCallServiceImpl.onBind");
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "ON BIND CALLED");
+        Log.i(TAG, "==========================================");
+        
         final Context context = getApplicationContext();
         final ContactInfoCache contactInfoCache = ContactInfoCache.getInstance(context);
         AudioModeProvider.getInstance().initializeAudioState(this);
@@ -114,7 +137,22 @@ public class InCallServiceImpl extends InCallService {
         InCallPresenter.getInstance().onServiceBind();
         InCallPresenter.getInstance().maybeStartRevealAnimation(intent);
         TelecomAdapter.getInstance().setInCallService(this);
-        CallRecorder.getInstance().setUp(context);
+        
+        // Setup CallRecorder with proper context
+        Log.i(TAG, "Setting up CallRecorder...");
+        try {
+            CallRecorder recorder = CallRecorder.getInstance();
+            recorder.setUp(context);
+            Log.i(TAG, "✓ CallRecorder setup complete");
+            
+            // Post a delayed verification to ensure service binding completes
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                verifyCallRecorderSetup();
+            }, 2000);
+        } catch (Exception e) {
+            Log.e(TAG, "✗ ERROR setting up CallRecorder", e);
+        }
+        
         returnToCallController =
                 new ReturnToCallController(this, ContactInfoCache.getInstance(context));
         feedbackListener = FeedbackComponent.get(context).getCallFeedbackListener();
@@ -123,6 +161,33 @@ public class InCallServiceImpl extends InCallService {
         IBinder iBinder = super.onBind(intent);
         Trace.endSection();
         return iBinder;
+    }
+    
+    private void verifyCallRecorderSetup() {
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "VERIFYING CALL RECORDER SETUP");
+        Log.i(TAG, "==========================================");
+        
+        try {
+            CallRecorder recorder = CallRecorder.getInstance();
+            boolean exists = recorder != null;
+            boolean enabled = exists && recorder.isEnabled();
+            
+            Log.i(TAG, "CallRecorder exists: " + (exists ? "✓" : "✗"));
+            Log.i(TAG, "CallRecorder enabled: " + (enabled ? "✓" : "✗"));
+            
+            if (exists && enabled) {
+                Log.i(TAG, "✓✓✓ CALL RECORDING SETUP VERIFIED ✓✓✓");
+            } else if (exists && !enabled) {
+                Log.i(TAG, "⚠ CallRecorder exists but is not enabled (check R.bool.call_recording_enabled)");
+            } else {
+                Log.e(TAG, "✗✗✗ CALL RECORDER SETUP FAILED ✗✗✗");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "✗ ERROR verifying CallRecorder setup", e);
+        }
+        
+        Log.i(TAG, "==========================================");
     }
 
     @Override
@@ -139,7 +204,10 @@ public class InCallServiceImpl extends InCallService {
 
     private void tearDown() {
         Trace.beginSection("InCallServiceImpl.tearDown");
-        Log.v(this, "tearDown");
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "TEAR DOWN");
+        Log.i(TAG, "==========================================");
+        
         // Tear down the InCall system
         InCallPresenter.getInstance().tearDown();
         TelecomAdapter.getInstance().clearInCallService();

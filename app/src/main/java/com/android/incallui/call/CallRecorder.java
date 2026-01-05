@@ -84,12 +84,12 @@ public class CallRecorder implements CallList.Listener {
   private ServiceConnection connection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-      Log.d(TAG, "Service connected");
+      Log.i(TAG, "✓ Service connected successfully");
       CallRecorder.this.service = ICallRecorderService.Stub.asInterface(service);
       
       // If there's a pending recording request, start it now
       if (pendingRecording != null) {
-        Log.d(TAG, "Processing pending recording request");
+        Log.i(TAG, "Processing pending recording request");
         PendingRecording pending = pendingRecording;
         // Clear before calling - the recursive call will now take the service != null path
         pendingRecording = null;
@@ -99,13 +99,14 @@ public class CallRecorder implements CallList.Listener {
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-      Log.d(TAG, "Service disconnected");
+      Log.i(TAG, "✗ Service disconnected");
       CallRecorder.this.service = null;
     }
   };
 
   public static CallRecorder getInstance() {
     if (instance == null) {
+      Log.i(TAG, "Creating new CallRecorder instance");
       instance = new CallRecorder();
     }
     return instance;
@@ -130,42 +131,51 @@ public class CallRecorder implements CallList.Listener {
   }
 
   private CallRecorder() {
+    Log.i(TAG, "CallRecorder constructor called");
     CallList.getInstance().addListener(this);
   }
 
   public void setUp(Context context) {
     this.context = context.getApplicationContext();
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "CALLRECORDER SETUP");
+    Log.i(TAG, "Context: " + (context != null ? "✓ Valid" : "✗ Null"));
+    Log.i(TAG, "==========================================");
   }
 
   private void initialize() {
     if (isEnabled() && !initialized) {
-      Log.d(TAG, "Initializing CallRecorder - binding to service");
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "INITIALIZING CALLRECORDER - BINDING TO SERVICE");
+      Log.i(TAG, "==========================================");
       Intent serviceIntent = new Intent(context, CallRecorderService.class);
       
       try {
         // Try to start the service first to ensure it's running
         context.startService(serviceIntent);
-        Log.d(TAG, "Service start initiated");
+        Log.i(TAG, "✓ Service start initiated");
       } catch (Exception e) {
-        Log.w(TAG, "Failed to start service", e);
+        Log.e(TAG, "✗ Failed to start service", e);
       }
       
       boolean bound = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
-      Log.d(TAG, "Service binding initiated: " + bound);
+      Log.i(TAG, "Service binding initiated: " + (bound ? "✓" : "✗"));
       
       if (!bound) {
-        Log.e(TAG, "Failed to bind to service");
+        Log.e(TAG, "✗ Failed to bind to service");
       }
       
       initialized = true;
     } else {
-      Log.d(TAG, "Initialize called - enabled: " + isEnabled() + ", initialized: " + initialized);
+      Log.i(TAG, "Initialize called - enabled: " + isEnabled() + ", initialized: " + initialized);
     }
   }
 
   private void uninitialize() {
     if (initialized) {
-      Log.d(TAG, "Uninitializing CallRecorder - unbinding service");
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "UNINITIALIZING CALLRECORDER - UNBINDING SERVICE");
+      Log.i(TAG, "==========================================");
       context.unbindService(connection);
       initialized = false;
     }
@@ -176,20 +186,27 @@ public class CallRecorder implements CallList.Listener {
     String maskedNumber = phoneNumber != null && phoneNumber.length() > 4 
         ? "***" + phoneNumber.substring(phoneNumber.length() - 4) 
         : "****";
-    Log.d(TAG, "startRecording called - phoneNumber: " + maskedNumber + ", time: " + creationTime);
-    Log.d(TAG, "Service state - initialized: " + initialized + ", service: " + (service != null));
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "START RECORDING CALLED");
+    Log.i(TAG, "Phone: " + maskedNumber);
+    Log.i(TAG, "Time: " + creationTime);
+    Log.i(TAG, "Context: " + (context != null ? "✓" : "✗"));
+    Log.i(TAG, "Initialized: " + (initialized ? "✓" : "✗"));
+    Log.i(TAG, "Service: " + (service != null ? "✓" : "✗"));
+    Log.i(TAG, "==========================================");
     
     if (service == null) {
-      Log.w(TAG, "Service is null - checking if we should queue or fail");
+      Log.i(TAG, "Service is null - checking if we should queue or fail");
       
       // If we're initialized but service isn't bound yet, queue the request
       if (initialized) {
-        Log.d(TAG, "Service binding in progress, queueing recording request");
+        Log.i(TAG, "⚠ Service binding in progress, queueing recording request");
         pendingRecording = new PendingRecording(phoneNumber, creationTime);
+        Toast.makeText(context, "Connecting to recording service...", Toast.LENGTH_SHORT).show();
         // Don't show toast here - wait for actual recording to start to avoid duplicate toasts
         return true;
       } else {
-        Log.e(TAG, "Service not initialized - cannot start recording");
+        Log.e(TAG, "✗ Service not initialized - cannot start recording");
         Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
             .show();
         return false;
@@ -197,9 +214,9 @@ public class CallRecorder implements CallList.Listener {
     }
 
     try {
-      Log.d(TAG, "Calling service.startRecording()");
+      Log.i(TAG, "Calling service.startRecording()...");
       if (service.startRecording(phoneNumber, creationTime)) {
-        Log.d(TAG, "Recording started successfully");
+        Log.i(TAG, "✓ Recording started successfully");
         for (RecordingProgressListener l : progressListeners) {
           l.onStartRecording();
         }
@@ -207,12 +224,12 @@ public class CallRecorder implements CallList.Listener {
         Toast.makeText(context, R.string.onscreenCallRecordText, Toast.LENGTH_SHORT).show();
         return true;
       } else {
-        Log.e(TAG, "Service returned false for startRecording");
+        Log.e(TAG, "✗ Service returned false for startRecording");
         Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
             .show();
       }
     } catch (RemoteException e) {
-      Log.e(TAG, "Failed to start recording for " + maskedNumber + ", time: " + creationTime, e);
+      Log.e(TAG, "✗ RemoteException when starting recording", e);
       Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
           .show();
     }
@@ -247,17 +264,19 @@ public class CallRecorder implements CallList.Listener {
   }
 
   public void finishRecording() {
-    Log.d(TAG, "finishRecording called");
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "FINISH RECORDING CALLED");
+    Log.i(TAG, "==========================================");
     if (service != null) {
       try {
-        Log.d(TAG, "Calling service.stopRecording()");
+        Log.i(TAG, "Calling service.stopRecording()");
         final CallRecording recording = service.stopRecording();
         if (recording != null) {
           // Mask phone number for privacy
           String maskedNumber = recording.phoneNumber != null && recording.phoneNumber.length() > 4
               ? "***" + recording.phoneNumber.substring(recording.phoneNumber.length() - 4)
               : "****";
-          Log.d(TAG, "Recording stopped successfully - phoneNumber: " + maskedNumber 
+          Log.i(TAG, "✓ Recording stopped successfully - phoneNumber: " + maskedNumber 
               + ", fileName: " + recording.fileName);
           if (!TextUtils.isEmpty(recording.phoneNumber)) {
             new Thread(() -> {
@@ -275,13 +294,13 @@ public class CallRecorder implements CallList.Listener {
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
           }
         } else {
-          Log.w(TAG, "Recording was null after stop");
+          Log.i(TAG, "⚠ Recording was null after stop");
         }
       } catch (RemoteException e) {
-        Log.e(TAG, "Failed to stop recording", e);
+        Log.e(TAG, "✗ Failed to stop recording", e);
       }
     } else {
-      Log.w(TAG, "Service is null, cannot stop recording");
+      Log.i(TAG, "✗ Service is null, cannot stop recording");
     }
 
     for (RecordingProgressListener l : progressListeners) {
@@ -403,9 +422,9 @@ public class CallRecorder implements CallList.Listener {
                 throw new XmlPullParserException("Unexpected country specification", parser, null);
             }
         }
-        Log.d(TAG, "Loaded " + RECORD_ALLOWED_STATE_BY_COUNTRY.size() + " country records");
+        Log.i(TAG, "✓ Loaded " + RECORD_ALLOWED_STATE_BY_COUNTRY.size() + " country records");
     } catch (XmlPullParserException | IOException e) {
-        Log.e(TAG, "Could not parse allowed country list", e);
+        Log.e(TAG, "✗ Could not parse allowed country list", e);
         RECORD_ALLOWED_STATE_BY_COUNTRY.clear();
     } finally {
         parser.close();

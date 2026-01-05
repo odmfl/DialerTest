@@ -1053,4 +1053,16 @@
 "</string>
     <string name="want_to_chat">Want to chat?</string>
     <string name="websiteLabelsGroup">Website</string>
+
+    <!-- Permission request strings -->
+    <string name="permission_dialog_title">Permissions Required</string>
+    <string name="permission_dialog_message">To provide the best experience, this app needs several permissions to function properly:</string>
+    <string name="permission_grant_button">Grant Permissions</string>
+    <string name="permission_deny_button">Not Now</string>
+    <string name="permission_default_dialer_title">Set as Default Dialer</string>
+    <string name="permission_default_dialer_message">To manage calls and access call features, please set this app as your default dialer.</string>
+    <string name="permission_default_dialer_grant">Set as Default</string>
+    <string name="permission_settings_button">Open Settings</string>
+    <string name="permission_rationale_title">Permissions Required</string>
+    <string name="permission_rationale_message">Some permissions are required for the app to work properly. Please grant them in settings.</string>
 </resources>

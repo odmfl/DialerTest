@@ -2,6 +2,7 @@ package com.fissy.dialer.util;
 
 import android.util.Log;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 
@@ -69,7 +70,8 @@ public class RootUtil {
         Process process = null;
         try {
             process = Runtime.getRuntime().exec("su");
-            return true;
+            int exitCode = process.waitFor();
+            return exitCode == 0;
         } catch (Exception e) {
             return false;
         } finally {
@@ -87,6 +89,7 @@ public class RootUtil {
         Process process = null;
         BufferedReader reader = null;
         BufferedReader errorReader = null;
+        DataOutputStream os = null;
         
         try {
             Log.i(TAG, "==========================================");
@@ -95,7 +98,7 @@ public class RootUtil {
             Log.i(TAG, "==========================================");
             
             process = Runtime.getRuntime().exec("su");
-            java.io.DataOutputStream os = new java.io.DataOutputStream(process.getOutputStream());
+            os = new DataOutputStream(process.getOutputStream());
             
             os.writeBytes(command + "\n");
             os.writeBytes("exit\n");
@@ -138,6 +141,7 @@ public class RootUtil {
             return false;
         } finally {
             try {
+                if (os != null) os.close();
                 if (reader != null) reader.close();
                 if (errorReader != null) errorReader.close();
                 if (process != null) process.destroy();

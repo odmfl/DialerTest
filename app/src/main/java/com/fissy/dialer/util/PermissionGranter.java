@@ -60,12 +60,12 @@ public class PermissionGranter {
             Log.i(TAG, "VOICE_CALL audio source should now work");
             Log.i(TAG, "Both sides of calls will be recorded");
             
-            // Verify permission was actually granted
-            isGranted = context.checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) 
+            // Verify permission was actually granted (re-check after grant attempt)
+            boolean verifyGranted = context.checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) 
                 == PackageManager.PERMISSION_GRANTED;
-            Log.i(TAG, "Verification: Permission granted = " + isGranted);
+            Log.i(TAG, "Verification: Permission granted = " + verifyGranted);
             
-            if (!isGranted) {
+            if (!verifyGranted) {
                 Log.w(TAG, "⚠ Warning: Command succeeded but permission not showing as granted");
                 Log.w(TAG, "This may be a caching issue - try restarting the app");
             }

@@ -104,20 +104,16 @@ public class CallRecorderService extends Service {
   }
 
   private int getAudioSource() {
-    // Try different audio sources in order of preference for non-rooted devices
-    // Starting with Android 9 (API 28), VOICE_CALL requires system privileges
-    
-    // For Android 12+ (API 31+), VOICE_RECOGNITION works best
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-      return MediaRecorder.AudioSource.VOICE_RECOGNITION;
-    }
-    
-    // For Android 10-11 (API 29-30), try VOICE_COMMUNICATION
+    // Android 10+ (API 29+) can use VOICE_CALL through InCallService
+    // This captures the actual call audio stream (both sides)
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-      return MediaRecorder.AudioSource.VOICE_COMMUNICATION;
+      Log.i(TAG, "Using VOICE_CALL audio source (Android 10+)");
+      return MediaRecorder.AudioSource.VOICE_CALL;
     }
     
-    // For Android 9 and below, use MIC or config value
+    // Android 9 and below: limited to microphone-based sources
+    // Use config value or fallback to VOICE_RECOGNITION
+    Log.i(TAG, "Using legacy audio source (Android 9-)");
     return getResources().getInteger(R.integer.call_recording_audio_source);
   }
 

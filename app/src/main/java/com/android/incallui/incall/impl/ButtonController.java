@@ -463,9 +463,13 @@ interface ButtonController {
 
         @Override
         public void setAllowed(boolean isAllowed) {
+            android.util.Log.i("CallRecordButtonController", "setAllowed() called: " + isAllowed);
             this.isAllowed = isAllowed;
             if (button != null) {
                 button.setVisibility(isAllowed ? View.VISIBLE : View.INVISIBLE);
+                android.util.Log.i("CallRecordButtonController", "  Button visibility set to: " + (isAllowed ? "VISIBLE" : "INVISIBLE"));
+            } else {
+                android.util.Log.i("CallRecordButtonController", "  ⚠ Button is null, cannot set visibility");
             }
         }
 
@@ -484,6 +488,15 @@ interface ButtonController {
 
         @Override
         public void setButton(CheckableLabeledButton button) {
+            android.util.Log.i("CallRecordButtonController", "════════════════════════════════════════");
+            android.util.Log.i("CallRecordButtonController", "setButton() CALLED");
+            android.util.Log.i("CallRecordButtonController", "Button: " + (button != null ? button.getClass().getSimpleName() : "null"));
+            if (button != null) {
+                android.util.Log.i("CallRecordButtonController", "Button ID: " + button.getId());
+                android.util.Log.i("CallRecordButtonController", "Button visible: " + (button.getVisibility() == View.VISIBLE));
+            }
+            android.util.Log.i("CallRecordButtonController", "════════════════════════════════════════");
+            
             this.button = button;
             if (button != null) {
                 final Resources res = button.getContext().getResources();
@@ -501,6 +514,11 @@ interface ButtonController {
                 button.setContentDescription(res.getText(
                         isChecked ? R.string.onscreenStopCallRecordText : R.string.onscreenCallRecordText));
                 button.setShouldShowMoreIndicator(false);
+                
+                android.util.Log.i("CallRecordButtonController", "✓ Button configured successfully");
+                android.util.Log.i("CallRecordButtonController", "  - Enabled: " + isEnabled);
+                android.util.Log.i("CallRecordButtonController", "  - Allowed: " + isAllowed);
+                android.util.Log.i("CallRecordButtonController", "  - Checked: " + isChecked);
             }
         }
 
@@ -516,6 +534,11 @@ interface ButtonController {
 
         @Override
         public void onClick(View v) {
+            android.util.Log.i("CallRecordButtonController", "════════════════════════════════════════");
+            android.util.Log.i("CallRecordButtonController", "CALL RECORD BUTTON CLICKED!");
+            android.util.Log.i("CallRecordButtonController", "Current state - isChecked: " + isChecked);
+            android.util.Log.i("CallRecordButtonController", "Toggling to: " + !isChecked);
+            android.util.Log.i("CallRecordButtonController", "════════════════════════════════════════");
             delegate.callRecordClicked(!isChecked);
         }
     }

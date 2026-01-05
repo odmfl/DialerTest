@@ -263,22 +263,27 @@ public class InCallFragment extends Fragment
                 new ButtonController.ManageConferenceButtonController(inCallScreenDelegate));
         buttonControllers.add(
                 new ButtonController.SwitchToSecondaryButtonController(inCallScreenDelegate));
-        buttonControllers.add(new ButtonController.CallRecordButtonController(inCallButtonUiDelegate));
+        
+        // Add CallRecordButtonController and log its creation
+        android.util.Log.i("InCallFragment", "Creating CallRecordButtonController...");
+        ButtonController callRecordController = new ButtonController.CallRecordButtonController(inCallButtonUiDelegate);
+        buttonControllers.add(callRecordController);
+        android.util.Log.i("InCallFragment", "✓ CallRecordButtonController created and added to buttonControllers");
+        android.util.Log.i("InCallFragment", "Total button controllers: " + buttonControllers.size());
 
         inCallScreenDelegate.onInCallScreenDelegateInit(this);
         inCallScreenDelegate.onInCallScreenReady();
         
-        // Diagnostic check for call record button
-        android.util.Log.i("InCallFragment", "Checking for call record button in view hierarchy...");
-        View recordButton = view.findViewById(R.id.callRecordButton);
-        if (recordButton != null) {
-            android.util.Log.i("InCallFragment", "✓✓✓ RECORD BUTTON FOUND IN LAYOUT ✓✓✓");
-            android.util.Log.i("InCallFragment", "Button class: " + recordButton.getClass().getName());
-            android.util.Log.i("InCallFragment", "Button visible: " + (recordButton.getVisibility() == View.VISIBLE));
-            android.util.Log.i("InCallFragment", "Button clickable: " + recordButton.isClickable());
-        } else {
-            android.util.Log.i("InCallFragment", "✗✗✗ RECORD BUTTON NOT FOUND IN LAYOUT ✗✗✗");
-            android.util.Log.i("InCallFragment", "Button with id 'callRecordButton' does not exist in this view");
+        // Log all button controllers for diagnostic purposes
+        android.util.Log.i("InCallFragment", "Button controllers registered:");
+        for (int i = 0; i < buttonControllers.size(); i++) {
+            ButtonController controller = buttonControllers.get(i);
+            String controllerName = controller.getClass().getSimpleName();
+            int buttonId = controller.getInCallButtonId();
+            android.util.Log.i("InCallFragment", "  [" + i + "] " + controllerName + " (buttonId: " + buttonId + ")");
+            if (buttonId == InCallButtonIds.BUTTON_RECORD_CALL) {
+                android.util.Log.i("InCallFragment", "      ✓✓✓ CALL RECORD BUTTON CONTROLLER FOUND ✓✓✓");
+            }
         }
         
         android.util.Log.i("InCallFragment", "onViewCreated completed");

@@ -66,6 +66,9 @@ public class CallRecorder implements CallList.Listener {
   private boolean initialized = false;
   private ICallRecorderService service = null;
   private PendingRecording pendingRecording = null;
+  private int bindRetryCount = 0;
+  private static final int MAX_RETRIES = 3;
+  private Handler retryHandler = new Handler(Looper.getMainLooper());
 
   private HashSet<RecordingProgressListener> progressListeners =
       new HashSet<RecordingProgressListener>();
@@ -148,26 +151,65 @@ public class CallRecorder implements CallList.Listener {
       Log.i(TAG, "==========================================");
       Log.i(TAG, "INITIALIZING CALLRECORDER - BINDING TO SERVICE");
       Log.i(TAG, "==========================================");
-      Intent serviceIntent = new Intent(context, CallRecorderService.class);
-      
-      try {
-        // Try to start the service first to ensure it's running
-        context.startService(serviceIntent);
-        Log.i(TAG, "✓ Service start initiated");
-      } catch (Exception e) {
-        Log.e(TAG, "✗ Failed to start service", e);
-      }
-      
-      boolean bound = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
-      Log.i(TAG, "Service binding initiated: " + (bound ? "✓" : "✗"));
-      
-      if (!bound) {
-        Log.e(TAG, "✗ Failed to bind to service");
-      }
-      
+      bindRetryCount = 0;  // Reset retry count
+      bindService();
       initialized = true;
     } else {
       Log.i(TAG, "Initialize called - enabled: " + isEnabled() + ", initialized: " + initialized);
+    }
+  }
+  
+  private void bindService() {
+    Log.i(TAG, "bindService() attempt #" + (bindRetryCount + 1));
+    
+    if (context == null) {
+      Log.e(TAG, "✗ Context is null, cannot bind service");
+      return;
+    }
+    
+    Intent serviceIntent = new Intent(context, CallRecorderService.class);
+    
+    try {
+      // Try to start the service first to ensure it's running
+      try {
+        context.startService(serviceIntent);
+        Log.i(TAG, "✓ Service started");
+      } catch (Exception e) {
+        Log.i(TAG, "⚠ Could not start service: " + e.getMessage());
+      }
+      
+      // Then bind
+      boolean bound = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+      Log.i(TAG, "Service binding initiated: " + (bound ? "✓" : "✗"));
+      
+      if (bound) {
+        bindRetryCount = 0;  // Reset retry count on success
+      } else {
+        Log.i(TAG, "✗ bindService returned false");
+        scheduleRetry();
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "✗ Exception binding service", e);
+      scheduleRetry();
+    }
+  }
+  
+  private void scheduleRetry() {
+    if (bindRetryCount < MAX_RETRIES) {
+      bindRetryCount++;
+      long delayMs = (long) Math.pow(2, bindRetryCount) * 1000;  // 2s, 4s, 8s
+      
+      Log.i(TAG, "⚠ Scheduling retry #" + bindRetryCount + " in " + delayMs + "ms");
+      
+      retryHandler.postDelayed(() -> {
+        Log.i(TAG, "Retrying service bind...");
+        bindService();
+      }, delayMs);
+    } else {
+      Log.e(TAG, "✗✗✗ Max retries reached, service binding failed ✗✗✗");
+      if (context != null) {
+        Toast.makeText(context, "Recording service unavailable", Toast.LENGTH_LONG).show();
+      }
     }
   }
 
@@ -176,8 +218,19 @@ public class CallRecorder implements CallList.Listener {
       Log.i(TAG, "==========================================");
       Log.i(TAG, "UNINITIALIZING CALLRECORDER - UNBINDING SERVICE");
       Log.i(TAG, "==========================================");
-      context.unbindService(connection);
+      
+      // Cancel any pending retries
+      retryHandler.removeCallbacksAndMessages(null);
+      
+      try {
+        context.unbindService(connection);
+        Log.i(TAG, "✓ Service unbound");
+      } catch (Exception e) {
+        Log.e(TAG, "✗ Error unbinding service", e);
+      }
+      
       initialized = false;
+      service = null;
     }
   }
 

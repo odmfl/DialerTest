@@ -132,10 +132,17 @@ public class InCallFragment extends Fragment
             
             if (allGranted) {
                 LogUtil.i("InCallFragment.permissionResult", "✓ All permissions granted - starting recording");
-                inCallButtonUiDelegate.callRecordClicked(true);
+                if (inCallButtonUiDelegate != null) {
+                    inCallButtonUiDelegate.callRecordClicked(true);
+                } else {
+                    LogUtil.w("InCallFragment.permissionResult", "inCallButtonUiDelegate is null, cannot proceed");
+                }
             } else {
                 LogUtil.w("InCallFragment.permissionResult", "✗ Some permissions denied");
-                Toast.makeText(getContext(), R.string.call_recording_permission_denied, Toast.LENGTH_LONG).show();
+                Context context = getContext();
+                if (context != null) {
+                    Toast.makeText(context, R.string.call_recording_permission_denied, Toast.LENGTH_LONG).show();
+                }
             }
         });
 

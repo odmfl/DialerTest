@@ -430,8 +430,9 @@ public class SpamCallListListener implements CallList.Listener {
         Intent intent =
                 SpamNotificationService.createServiceIntent(
                         context, call, action, getNotificationTagForCall(call), NOTIFICATION_ID);
+        int flags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getService(
-                context, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
+                context, (int) System.currentTimeMillis(), intent, flags);
     }
 
     /**
@@ -441,8 +442,9 @@ public class SpamCallListListener implements CallList.Listener {
         Intent intent =
                 SpamNotificationActivity.createActivityIntent(
                         context, call, action, getNotificationTagForCall(call), NOTIFICATION_ID);
+        int flags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getActivity(
-                context, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
+                context, (int) System.currentTimeMillis(), intent, flags);
     }
 
     /**

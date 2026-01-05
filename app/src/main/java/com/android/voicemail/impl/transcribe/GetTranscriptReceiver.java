@@ -146,6 +146,12 @@ public class GetTranscriptReceiver extends BroadcastReceiver {
     }
 
     private static PendingIntent getPendingIntent(Context context, Intent intent, int flags) {
+        // Add FLAG_MUTABLE for AlarmManager intents that need to be updated
+        if (flags == PendingIntent.FLAG_UPDATE_CURRENT || flags == 0) {
+            flags = flags | PendingIntent.FLAG_MUTABLE;
+        } else if (flags == PendingIntent.FLAG_NO_CREATE) {
+            flags = flags | PendingIntent.FLAG_IMMUTABLE;
+        }
         return PendingIntent.getBroadcast(context.getApplicationContext(), 0, intent, flags);
     }
 

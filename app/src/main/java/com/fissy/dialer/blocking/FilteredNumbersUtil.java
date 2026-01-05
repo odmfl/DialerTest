@@ -265,12 +265,13 @@ public class FilteredNumbersUtil {
                         if (BuildCompat.isAtLeastO()) {
                             builder.setChannelId(NotificationChannelId.DEFAULT);
                         }
+                        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
                         builder.setContentIntent(
                                 PendingIntent.getActivity(
                                         context,
                                         0,
                                         FilteredNumberCompat.createManageBlockedNumbersIntent(context),
-                                        PendingIntent.FLAG_UPDATE_CURRENT));
+                                        flags));
 
                         DialerNotificationManager.notify(
                                 context,

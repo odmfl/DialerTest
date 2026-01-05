@@ -426,6 +426,8 @@ public class CallRecorderService extends Service {
       ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
       if (pfd == null) {
         recorder.release();
+        // Clean up the MediaStore entry
+        getContentResolver().delete(uri, null, null);
         return false;
       }
       recorder.setOutputFile(pfd.getFileDescriptor());
@@ -443,8 +445,24 @@ public class CallRecorderService extends Service {
       Log.i(TAG, "✓ Successfully started with audio source: " + audioSource);
       return true;
       
-    } catch (Exception e) {
-      Log.w(TAG, "Audio source " + audioSource + " failed: " + e.getMessage());
+    } catch (IOException e) {
+      Log.w(TAG, "Audio source " + audioSource + " failed with IOException: " + e.getMessage());
+      try {
+        recorder.release();
+      } catch (Exception ex) {
+        // Ignore cleanup errors
+      }
+      return false;
+    } catch (IllegalStateException e) {
+      Log.w(TAG, "Audio source " + audioSource + " failed with IllegalStateException: " + e.getMessage());
+      try {
+        recorder.release();
+      } catch (Exception ex) {
+        // Ignore cleanup errors
+      }
+      return false;
+    } catch (RuntimeException e) {
+      Log.w(TAG, "Audio source " + audioSource + " failed with RuntimeException: " + e.getMessage());
       try {
         recorder.release();
       } catch (Exception ex) {

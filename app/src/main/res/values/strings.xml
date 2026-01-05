@@ -823,6 +823,27 @@
     <string name="terms_of_service_label">Terms of service</string>
     <string name="terms_of_service_url">http://www.google.com/policies/terms</string>
     <string name="toast_cannot_write_system_settings">Phone app does not have permission to write to system settings.</string>
+    
+    <!-- WRITE_SETTINGS Permission Strings -->
+    <string name="write_settings_success">Permission granted successfully!</string>
+    <string name="write_settings_denied_title">Permission Not Granted</string>
+    <string name="write_settings_denied_message">To modify system settings for ringtones and notifications, please enable \"Modify system settings\" permission in Android settings.</string>
+    <string name="write_settings_retry_button">Try Again</string>
+    <string name="write_settings_not_now_button">Not Now</string>
+    
+    <!-- Write Settings Warning Dialog Strings -->
+    <string name="write_settings_warning_title">Modify System Settings Permission</string>
+    <string name="write_settings_warning_message">This permission allows the app to modify system settings like ringtones and notification sounds.</string>
+    <string name="write_settings_instructions">To enable this permission:\n\n1. Tap \"Take me to Settings\" below\n2. Find \"Modify system settings\" toggle\n3. Turn ON the toggle switch\n4. Press back to return</string>
+    <string name="write_settings_manual_required">This permission requires manual action in Android settings.</string>
+    <string name="write_settings_button_allow">Take me to Settings</string>
+    <string name="write_settings_button_cancel">Cancel</string>
+    
+    <!-- Full-Screen Intent Permission Strings -->
+    <string name="full_screen_intent_denied_title">Full-Screen Notifications Permission</string>
+    <string name="full_screen_intent_denied_message">To show incoming call notifications when your screen is locked, please enable \"Display over other apps\" or \"Full-screen notifications\" permission.</string>
+    <string name="full_screen_intent_success">Full-screen notifications enabled!</string>
+    
     <string name="toast_text_copied">Text copied</string>
     <string name="toolbar_close">Close</string>
     <string name="transcription_learn_more_url">https://support.google.com/phoneapp/answer/2811844?hl=en%26ref_topic=7539039</string>
@@ -1071,16 +1092,8 @@
     <string name="write_settings_dialog_title">Modify System Settings</string>
     <string name="write_settings_dialog_message">This app needs permission to modify system settings to adjust call-related audio settings for the best calling experience.</string>
     <string name="write_settings_dialog_explanation">You will be directed to system settings where you can grant this permission. This allows the app to optimize volume and audio settings during calls.</string>
-    <string name="write_settings_manual_required">This permission requires manual action in Android settings.</string>
-    <string name="write_settings_instructions">To modify system settings:\n\n1. Tap \"Take me to Settings\" below\n2. Find the \"Modify system settings\" toggle\n3. Turn ON the toggle switch\n4. Press back to return to this app</string>
     <string name="write_settings_allow_button">Take me to Settings</string>
     <string name="write_settings_cancel_button">Not Now</string>
-    
-    <!-- WRITE_SETTINGS success and retry messages -->
-    <string name="write_settings_success">Permission granted successfully!</string>
-    <string name="write_settings_denied_title">Permission Not Granted</string>
-    <string name="write_settings_denied_message">The app needs permission to modify system settings for adjusting call audio. Without this permission, audio optimization may not work properly.\n\nWould you like to try again?</string>
-    <string name="write_settings_retry_button">Try Again</string>
     <string name="write_settings_skip_button">Continue Without Permission</string>
     
     <!-- Log Export and Diagnostics -->

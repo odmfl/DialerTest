@@ -258,30 +258,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         setContentView(R.layout.incall_screen);
         internalResolveIntent(getIntent());
 
-        boolean isLandscape =
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        boolean isRtl = ViewUtil.isRtl();
-        if (isLandscape) {
-            dialpadSlideInAnimation =
-                    AnimationUtils.loadAnimation(
-                            this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
-            dialpadSlideOutAnimation =
-                    AnimationUtils.loadAnimation(
-                            this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
-        } else {
-            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
-            dialpadSlideOutAnimation =
-                    AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
-        }
-        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
-        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
-        dialpadSlideOutAnimation.setAnimationListener(
-                new AnimationListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        hideDialpadFragment();
-                    }
-                });
+        setupDialpadAnimations();
 
         if (bundle != null && showDialpadRequest == DIALPAD_REQUEST_NONE) {
             // If the dialpad was shown before, set related variables so that it can be shown and
@@ -320,6 +297,37 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         MetricsComponent.get(this)
                 .metrics()
                 .stopTimer(Metrics.ON_CALL_ADDED_TO_ON_INCALL_UI_SHOWN_OUTGOING);
+    }
+
+    /**
+     * Loads dialpad slide animations based on current orientation and RTL settings.
+     */
+    private void setupDialpadAnimations() {
+        boolean isLandscape =
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        boolean isRtl = ViewUtil.isRtl();
+        
+        if (isLandscape) {
+            dialpadSlideInAnimation =
+                    AnimationUtils.loadAnimation(
+                            this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
+            dialpadSlideOutAnimation =
+                    AnimationUtils.loadAnimation(
+                            this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
+        } else {
+            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
+            dialpadSlideOutAnimation =
+                    AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
+        }
+        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
+        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
+        dialpadSlideOutAnimation.setAnimationListener(
+                new AnimationListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        hideDialpadFragment();
+                    }
+                });
     }
 
     private void setWindowFlags() {
@@ -580,29 +588,8 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         
         super.onConfigurationChanged(newConfig);
         
-        // Update landscape flag for dialpad animations
-        boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
-        boolean isRtl = ViewUtil.isRtl();
-        
-        // Reload animations for new orientation
-        if (isLandscape) {
-            dialpadSlideInAnimation = AnimationUtils.loadAnimation(
-                this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
-            dialpadSlideOutAnimation = AnimationUtils.loadAnimation(
-                this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
-        } else {
-            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
-            dialpadSlideOutAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
-        }
-        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
-        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
-        dialpadSlideOutAnimation.setAnimationListener(
-            new AnimationListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    hideDialpadFragment();
-                }
-            });
+        // Reload dialpad animations for new orientation
+        setupDialpadAnimations();
         
         // Update UI for multiwindow mode if needed
         // When in multiwindow mode and dialpad is not allowed, hide it

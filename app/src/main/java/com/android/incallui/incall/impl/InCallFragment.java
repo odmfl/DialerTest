@@ -222,9 +222,23 @@ public class InCallFragment extends Fragment
     @Override
     public void onResume() {
         android.util.Log.i("InCallFragment", "onResume() called");
+        android.util.Log.i("InCallFragment", "Fragment view valid: " + (getView() != null));
+        android.util.Log.i("InCallFragment", "Button controllers: " + buttonControllers.size());
+        
         super.onResume();
-        inCallButtonUiDelegate.refreshMuteState();
-        inCallScreenDelegate.onInCallScreenResumed();
+        
+        // Defensive check - ensure delegates are initialized
+        if (inCallButtonUiDelegate != null) {
+            inCallButtonUiDelegate.refreshMuteState();
+        } else {
+            android.util.Log.w("InCallFragment", "inCallButtonUiDelegate is null in onResume()");
+        }
+        
+        if (inCallScreenDelegate != null) {
+            inCallScreenDelegate.onInCallScreenResumed();
+        } else {
+            android.util.Log.w("InCallFragment", "inCallScreenDelegate is null in onResume()");
+        }
     }
 
     @Override

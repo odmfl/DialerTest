@@ -233,7 +233,8 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onCreate(Bundle bundle) {
         android.util.Log.i("InCallActivity", "==========================================");
-        android.util.Log.i("InCallActivity", "IN-CALL ACTIVITY CREATED");
+        android.util.Log.i("InCallActivity", "ONCREATE - " + (bundle != null ? "RECREATING" : "FIRST CREATE"));
+        android.util.Log.i("InCallActivity", "Saved state: " + (bundle != null));
         android.util.Log.i("InCallActivity", "Intent: " + (getIntent() != null ? getIntent().getAction() : "null"));
         android.util.Log.i("InCallActivity", "==========================================");
         Trace.beginSection("InCallActivity.onCreate");
@@ -504,7 +505,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onResume() {
-        android.util.Log.i("InCallActivity", "onResume() called");
+        android.util.Log.i("InCallActivity", "ONRESUME - Activity instance: " + System.identityHashCode(this));
         Trace.beginSection("InCallActivity.onResume");
         super.onResume();
 
@@ -554,6 +555,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onPause() {
+        android.util.Log.i("InCallActivity", "ONPAUSE - Activity instance: " + System.identityHashCode(this));
         Trace.beginSection("InCallActivity.onPause");
         super.onPause();
 
@@ -564,6 +566,53 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
         InCallPresenter.getInstance().getPseudoScreenState().removeListener(this);
         Trace.endSection();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        android.util.Log.i("InCallActivity", "==========================================");
+        android.util.Log.i("InCallActivity", "CONFIGURATION CHANGED");
+        android.util.Log.i("InCallActivity", "New orientation: " + 
+            (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        android.util.Log.i("InCallActivity", "Screen layout: " + newConfig.screenLayout);
+        android.util.Log.i("InCallActivity", "KeyboardHidden: " + newConfig.keyboardHidden);
+        android.util.Log.i("InCallActivity", "==========================================");
+        
+        super.onConfigurationChanged(newConfig);
+        
+        // Update landscape flag for dialpad animations
+        boolean isLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        boolean isRtl = ViewUtil.isRtl();
+        
+        // Reload animations for new orientation
+        if (isLandscape) {
+            dialpadSlideInAnimation = AnimationUtils.loadAnimation(
+                this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
+            dialpadSlideOutAnimation = AnimationUtils.loadAnimation(
+                this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
+        } else {
+            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
+            dialpadSlideOutAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
+        }
+        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
+        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
+        dialpadSlideOutAnimation.setAnimationListener(
+            new AnimationListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    hideDialpadFragment();
+                }
+            });
+        
+        // Notify orientation listeners via InCallPresenter
+        InCallPresenter.getInstance().onDeviceOrientationChange(newConfig.orientation);
+        
+        // Update UI for multiwindow mode if needed
+        if (isInMultiWindowMode() && !getResources().getBoolean(R.bool.incall_dialpad_allowed)) {
+            showDialpadFragment(false, false);
+        }
+        
+        android.util.Log.i("InCallActivity", "Configuration change handled - activity NOT recreated");
     }
 
     @Override

@@ -5,6 +5,10 @@ android {
     compileSdk rootProject.ext.COMPILE_SDK_VERSION
     buildToolsVersion '35.0.0'
     
+    buildFeatures {
+        aidl = true
+    }
+    
     defaultConfig {
         applicationId rootProject.ext.APPLICATION_ID
         minSdkVersion rootProject.ext.MIN_SDK_VERSION

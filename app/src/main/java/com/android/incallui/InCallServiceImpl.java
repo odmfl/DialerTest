@@ -72,6 +72,10 @@ public class InCallServiceImpl extends InCallService {
     @Override
     public void onCallAdded(Call call) {
         Trace.beginSection("InCallServiceImpl.onCallAdded");
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "CALL ADDED");
+        Log.i(TAG, "Call details: " + (call != null ? call.toString() : "null"));
+        Log.i(TAG, "==========================================");
         InCallPresenter.getInstance().onCallAdded(call);
         Trace.endSection();
     }
@@ -201,6 +205,14 @@ public class InCallServiceImpl extends InCallService {
 
         Trace.endSection();
         return false;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "==========================================");
+        Log.i(TAG, "IN-CALL SERVICE DESTROYED");
+        Log.i(TAG, "==========================================");
+        super.onDestroy();
     }
 
     private void tearDown() {

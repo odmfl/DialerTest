@@ -232,6 +232,10 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onCreate(Bundle bundle) {
+        android.util.Log.i("InCallActivity", "==========================================");
+        android.util.Log.i("InCallActivity", "IN-CALL ACTIVITY CREATED");
+        android.util.Log.i("InCallActivity", "Intent: " + (getIntent() != null ? getIntent().getAction() : "null"));
+        android.util.Log.i("InCallActivity", "==========================================");
         Trace.beginSection("InCallActivity.onCreate");
         super.onCreate(bundle);
 
@@ -305,6 +309,9 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
         pseudoBlackScreenOverlay = findViewById(R.id.psuedo_black_screen_overlay);
         sendBroadcast(CallPendingActivity.getFinishBroadcast());
+        
+        android.util.Log.i("InCallActivity", "onCreate() completed");
+        android.util.Log.i("InCallActivity", "==========================================");
         Trace.endSection();
         MetricsComponent.get(this)
                 .metrics()
@@ -470,6 +477,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onStart() {
+        android.util.Log.i("InCallActivity", "onStart() called");
         Trace.beginSection("InCallActivity.onStart");
         super.onStart();
 
@@ -496,6 +504,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onResume() {
+        android.util.Log.i("InCallActivity", "onResume() called");
         Trace.beginSection("InCallActivity.onResume");
         super.onResume();
 

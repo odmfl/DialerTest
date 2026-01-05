@@ -45,6 +45,7 @@ import com.fissy.dialer.R;
 public class CallRecorderService extends Service {
   private static final String TAG = "CallRecorderService";
   private static final boolean DBG = false;
+  private static final String PERMISSION_CAPTURE_AUDIO_OUTPUT = "android.permission.CAPTURE_AUDIO_OUTPUT";
 
   private MediaRecorder mMediaRecorder = null;
   private CallRecording mCurrentRecording = null;
@@ -165,7 +166,7 @@ public class CallRecorderService extends Service {
 
     // Check CAPTURE_AUDIO_OUTPUT permission (needed for VOICE_CALL)
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-      boolean hasCapturePermission = checkSelfPermission("android.permission.CAPTURE_AUDIO_OUTPUT") == PackageManager.PERMISSION_GRANTED;
+      boolean hasCapturePermission = checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) == PackageManager.PERMISSION_GRANTED;
       Log.i(TAG, "CAPTURE_AUDIO_OUTPUT permission: " + (hasCapturePermission ? "✓ granted" : "✗ denied"));
       
       if (!hasCapturePermission) {
@@ -222,7 +223,7 @@ public class CallRecorderService extends Service {
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(audioSource);
         audioSourceSet = true;
-        Log.i(TAG, "✓ Fallback VOICE_RECOGNITION successful (warning: may only record mic)");
+        Log.i(TAG, "✓ Fallback VOICE_RECOGNITION successful (may only record microphone)");
       } catch (IllegalStateException e2) {
         Log.e(TAG, "✗ VOICE_RECOGNITION also failed, trying MIC as last resort", e2);
         
@@ -240,13 +241,14 @@ public class CallRecorderService extends Service {
           mMediaRecorder = new MediaRecorder();
           mMediaRecorder.setAudioSource(audioSource);
           audioSourceSet = true;
-          Log.i(TAG, "✓ Fallback MIC successful (warning: may only record mic)");
+          Log.i(TAG, "✓ Fallback MIC successful (may only record microphone)");
         } catch (IllegalStateException e3) {
           Log.e(TAG, "==========================================");
           Log.e(TAG, "✗✗✗ ALL AUDIO SOURCES FAILED ✗✗✗");
           Log.e(TAG, "Tried: VOICE_CALL, VOICE_RECOGNITION, MIC");
           Log.e(TAG, "Device may not support call recording");
-          Log.e(TAG, "==========================================", e3);
+          Log.e(TAG, "Final error: " + e3.getMessage(), e3);
+          Log.e(TAG, "==========================================");
         }
       }
     }

@@ -237,7 +237,8 @@ public class CallRecorderService extends Service {
     } catch (RuntimeException e) {
       getContentResolver().delete(uri, null, null);
       // only catch exceptions thrown by the MediaRecorder JNI code
-      if (e.getMessage().indexOf("start failed") >= 0) {
+      String message = e.getMessage();
+      if (message != null && message.contains("start failed")) {
         Log.w(TAG, "Could not start recording", e);
       } else {
         throw e;

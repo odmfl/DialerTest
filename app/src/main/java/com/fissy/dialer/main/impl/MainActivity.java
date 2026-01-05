@@ -19,7 +19,6 @@ package com.fissy.dialer.main.impl;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.fissy.dialer.blockreportspam.ShowBlockReportSpamDialogReceiver;
@@ -31,11 +30,7 @@ import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorCode
 import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorListener;
 import com.fissy.dialer.main.MainActivityPeer;
 import com.fissy.dialer.main.impl.bottomnav.BottomNavBar.TabIndex;
-import com.fissy.dialer.util.PermissionManager;
 import com.fissy.dialer.util.TransactionSafeActivity;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This is the main activity for dialer. It hosts favorites, call log, search, dialpad, etc...
@@ -45,14 +40,9 @@ public class MainActivity extends TransactionSafeActivity
         implements MainActivityPeer.PeerSupplier,
         // TODO(calderwoodra): remove these 2 interfaces when we migrate to new speed dial fragment
         InteractionErrorListener,
-        DisambigDialogDismissedListener,
-        PermissionDialogFragment.PermissionDialogListener,
-        WriteSettingsWarningDialogFragment.WriteSettingsWarningListener,
-        WriteSettingsRetryDialogFragment.WriteSettingsRetryListener {
+        DisambigDialogDismissedListener {
 
     private MainActivityPeer activePeer;
-    private PermissionManager permissionManager;
-    private boolean permissionsChecked = false;
 
     /**
      * {@link android.content.BroadcastReceiver} that shows a dialog to block a number and/or report
@@ -90,10 +80,6 @@ public class MainActivity extends TransactionSafeActivity
         super.onCreate(savedInstanceState);
         LogUtil.enterBlock("MainActivity.onCreate");
         
-        // Initialize permission manager
-        permissionManager = new PermissionManager(this);
-        permissionManager.initialize();
-        
         // If peer was set by the super, don't reset it.
         activePeer = getNewPeer();
         activePeer.onActivityCreate(savedInstanceState);
@@ -125,15 +111,6 @@ public class MainActivity extends TransactionSafeActivity
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(
                         showBlockReportSpamDialogReceiver, ShowBlockReportSpamDialogReceiver.getIntentFilter());
-        
-        // Check if returning from WRITE_SETTINGS permission request
-        checkWriteSettingsPermissionAfterReturn();
-        
-        // Check and request permissions on first resume
-        if (!permissionsChecked) {
-            permissionsChecked = true;
-            checkAndRequestPermissions();
-        }
     }
 
     @Override
@@ -201,230 +178,5 @@ public class MainActivity extends TransactionSafeActivity
     @Override
     public MainActivityPeer getPeer() {
         return activePeer;
-    }
-
-    /**
-     * Check and request necessary permissions
-     */
-    private void checkAndRequestPermissions() {
-        // Check if we need to request permissions
-        List<String> deniedPermissions = permissionManager.getDeniedPermissions();
-        
-        if (!deniedPermissions.isEmpty() && permissionManager.isFirstRequest()) {
-            // Show explanation dialog
-            PermissionDialogFragment dialog = PermissionDialogFragment.newInstance(deniedPermissions);
-            dialog.setListener(this);
-            dialog.show(getSupportFragmentManager(), "permissions");
-        } else if (!permissionManager.hasAllRequiredPermissions()) {
-            // Request permissions directly if not first request
-            requestPermissions();
-        } else {
-            // All permissions granted, check default dialer role
-            checkDefaultDialerRole();
-        }
-    }
-
-    /**
-     * Request runtime permissions
-     */
-    private void requestPermissions() {
-        permissionManager.requestPermissions(new PermissionManager.PermissionCallback() {
-            @Override
-            public void onPermissionsGranted(Map<String, Boolean> results) {
-                LogUtil.i("MainActivity", "Permissions result: " + results);
-                // Check if all critical permissions were granted
-                boolean allGranted = true;
-                for (Boolean granted : results.values()) {
-                    if (!granted) {
-                        allGranted = false;
-                        break;
-                    }
-                }
-                
-                if (allGranted) {
-                    // Check default dialer role after permissions are granted
-                    checkDefaultDialerRole();
-                }
-            }
-
-            @Override
-            public void onDefaultDialerRoleResult(boolean granted) {
-                LogUtil.i("MainActivity", "Default dialer role: " + granted);
-            }
-
-            @Override
-            public void onFullScreenIntentPermissionResult(boolean granted) {
-                LogUtil.i("MainActivity", "Full-screen intent permission: " + granted);
-            }
-
-            @Override
-            public void onWriteSettingsPermissionResult(boolean granted) {
-                LogUtil.i("MainActivity", "Write settings permission: " + granted);
-            }
-        });
-    }
-
-    /**
-     * Check and request default dialer role
-     */
-    private void checkDefaultDialerRole() {
-        if (!permissionManager.isDefaultDialer() && !permissionManager.hasDialerRoleBeenRequested()) {
-            permissionManager.requestDefaultDialerRole(new PermissionManager.PermissionCallback() {
-                @Override
-                public void onPermissionsGranted(Map<String, Boolean> results) {
-                    // Not used for dialer role
-                }
-
-                @Override
-                public void onDefaultDialerRoleResult(boolean granted) {
-                    LogUtil.i("MainActivity", "Default dialer role granted: " + granted);
-                }
-
-                @Override
-                public void onFullScreenIntentPermissionResult(boolean granted) {
-                    // Not used for dialer role
-                }
-
-                @Override
-                public void onWriteSettingsPermissionResult(boolean granted) {
-                    // Not used for dialer role
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onPermissionsRequested() {
-        // User agreed to grant permissions, show system dialog
-        requestPermissions();
-    }
-
-    @Override
-    public void onPermissionsDenied() {
-        // User declined to grant permissions
-        LogUtil.i("MainActivity", "User declined permissions");
-    }
-
-    @Override
-    public void onWriteSettingsAllowed() {
-        // User agreed to grant WRITE_SETTINGS, launch settings
-        LogUtil.i("MainActivity", "User agreed to grant WRITE_SETTINGS");
-        permissionManager.requestWriteSettingsPermission(new PermissionManager.PermissionCallback() {
-            @Override
-            public void onPermissionsGranted(Map<String, Boolean> results) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onDefaultDialerRoleResult(boolean granted) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onFullScreenIntentPermissionResult(boolean granted) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onWriteSettingsPermissionResult(boolean granted) {
-                LogUtil.i("MainActivity", "Write settings permission result: " + granted);
-            }
-        });
-    }
-
-    @Override
-    public void onWriteSettingsCancelled() {
-        // User cancelled WRITE_SETTINGS request
-        LogUtil.i("MainActivity", "User cancelled WRITE_SETTINGS request");
-    }
-
-    /**
-     * Show warning dialog for WRITE_SETTINGS permission
-     */
-    public void showWriteSettingsWarningDialog() {
-        WriteSettingsWarningDialogFragment dialog = WriteSettingsWarningDialogFragment.newInstance();
-        dialog.setListener(this);
-        dialog.show(getSupportFragmentManager(), "write_settings_warning");
-    }
-
-    /**
-     * Check WRITE_SETTINGS permission after returning from settings
-     */
-    private void checkWriteSettingsPermissionAfterReturn() {
-        if (permissionManager.isInWriteSettingsFlow()) {
-            boolean granted = permissionManager.onReturnFromWriteSettingsRequest();
-            
-            if (granted) {
-                showWriteSettingsSuccessMessage();
-            } else {
-                showWriteSettingsRetryDialog();
-            }
-        }
-    }
-
-    /**
-     * Show success message when WRITE_SETTINGS permission is granted
-     */
-    private void showWriteSettingsSuccessMessage() {
-        LogUtil.i("MainActivity", "WRITE_SETTINGS permission granted");
-        // Show toast message
-        Toast.makeText(
-            this, 
-            R.string.write_settings_success, 
-            Toast.LENGTH_SHORT
-        ).show();
-    }
-
-    /**
-     * Show retry dialog when WRITE_SETTINGS permission is not granted
-     */
-    private void showWriteSettingsRetryDialog() {
-        LogUtil.i("MainActivity", "WRITE_SETTINGS permission not granted, showing retry dialog");
-        WriteSettingsRetryDialogFragment dialog = WriteSettingsRetryDialogFragment.newInstance();
-        dialog.setListener(this);
-        dialog.show(getSupportFragmentManager(), "write_settings_retry");
-    }
-
-    /**
-     * Handle WRITE_SETTINGS permission denied scenario
-     */
-    private void handleWriteSettingsPermissionDenied() {
-        LogUtil.i("MainActivity", "WRITE_SETTINGS permission denied");
-        // App continues without the permission
-        // User chose to skip, so we don't show any more dialogs
-    }
-
-    @Override
-    public void onWriteSettingsRetry() {
-        // User wants to retry granting WRITE_SETTINGS permission
-        LogUtil.i("MainActivity", "User wants to retry WRITE_SETTINGS permission");
-        permissionManager.requestWriteSettingsPermission(new PermissionManager.PermissionCallback() {
-            @Override
-            public void onPermissionsGranted(java.util.Map<String, Boolean> results) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onDefaultDialerRoleResult(boolean granted) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onFullScreenIntentPermissionResult(boolean granted) {
-                // Not used for write settings
-            }
-
-            @Override
-            public void onWriteSettingsPermissionResult(boolean granted) {
-                LogUtil.i("MainActivity", "Write settings permission retry result: " + granted);
-            }
-        });
-    }
-
-    @Override
-    public void onWriteSettingsSkip() {
-        // User chose to skip WRITE_SETTINGS permission
-        LogUtil.i("MainActivity", "User chose to skip WRITE_SETTINGS permission");
-        handleWriteSettingsPermissionDenied();
     }
 }

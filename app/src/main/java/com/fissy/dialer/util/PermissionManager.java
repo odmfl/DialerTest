@@ -18,11 +18,13 @@ package com.fissy.dialer.util;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.telecom.TelecomManager;
@@ -50,6 +52,8 @@ public class PermissionManager {
     private static final String PREFS_NAME = "dialer_permission_manager";
     private static final String KEY_PERMISSIONS_REQUESTED = "permissions_requested";
     private static final String KEY_DIALER_ROLE_REQUESTED = "dialer_role_requested";
+    private static final String KEY_FULL_SCREEN_INTENT_REQUESTED = "full_screen_intent_requested";
+    private static final String KEY_WRITE_SETTINGS_REQUESTED = "write_settings_requested";
 
     // Required permissions for the app
     private static final String[] REQUIRED_PERMISSIONS = {
@@ -67,11 +71,15 @@ public class PermissionManager {
     private PermissionCallback callback;
     private ActivityResultLauncher<String[]> multiplePermissionsLauncher;
     private ActivityResultLauncher<Intent> dialerRoleLauncher;
+    private ActivityResultLauncher<Intent> fullScreenIntentLauncher;
+    private ActivityResultLauncher<Intent> writeSettingsLauncher;
     private boolean isInitialized = false;
 
     public interface PermissionCallback {
         void onPermissionsGranted(Map<String, Boolean> results);
         void onDefaultDialerRoleResult(boolean granted);
+        void onFullScreenIntentPermissionResult(boolean granted);
+        void onWriteSettingsPermissionResult(boolean granted);
     }
 
     public PermissionManager(@NonNull FragmentActivity activity) {
@@ -100,6 +108,15 @@ public class PermissionManager {
                         callback.onPermissionsGranted(result);
                     }
                     markPermissionsRequested();
+                    
+                    // Check if POST_NOTIFICATIONS was granted and if so, check full-screen intent
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        Boolean notificationGranted = result.get(Manifest.permission.POST_NOTIFICATIONS);
+                        if (notificationGranted != null && notificationGranted) {
+                            // Automatically check for full-screen intent permission after notification permission
+                            checkAndRequestFullScreenIntent(callback);
+                        }
+                    }
                 }
         );
 
@@ -113,6 +130,32 @@ public class PermissionManager {
                         callback.onDefaultDialerRoleResult(granted);
                     }
                     markDialerRoleRequested();
+                }
+        );
+
+        // Full-screen intent permission launcher (Android 14+)
+        fullScreenIntentLauncher = activity.registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    boolean granted = canUseFullScreenIntent();
+                    LogUtil.i("PermissionManager", "Full-screen intent permission result: " + granted);
+                    if (callback != null) {
+                        callback.onFullScreenIntentPermissionResult(granted);
+                    }
+                    markFullScreenIntentRequested();
+                }
+        );
+
+        // WRITE_SETTINGS permission launcher
+        writeSettingsLauncher = activity.registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    boolean granted = canWriteSettings();
+                    LogUtil.i("PermissionManager", "Write settings permission result: " + granted);
+                    if (callback != null) {
+                        callback.onWriteSettingsPermissionResult(granted);
+                    }
+                    markWriteSettingsRequested();
                 }
         );
     }
@@ -340,5 +383,119 @@ public class PermissionManager {
             default:
                 return "Required for app functionality";
         }
+    }
+
+    /**
+     * Check if the app can use full-screen intents (Android 14+)
+     */
+    public boolean canUseFullScreenIntent() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14 (API 34)
+            NotificationManager notificationManager = 
+                    (NotificationManager) activity.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                return notificationManager.canUseFullScreenIntent();
+            }
+        }
+        // For Android 13 and below, full-screen intent is granted automatically
+        return true;
+    }
+
+    /**
+     * Check and request full-screen intent permission if needed (Android 14+)
+     */
+    public void checkAndRequestFullScreenIntent(PermissionCallback callback) {
+        this.callback = callback;
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14 (API 34)
+            if (!canUseFullScreenIntent()) {
+                LogUtil.i("PermissionManager", "Requesting full-screen intent permission");
+                requestFullScreenIntentPermission();
+            } else {
+                LogUtil.i("PermissionManager", "Full-screen intent already granted");
+                if (callback != null) {
+                    callback.onFullScreenIntentPermissionResult(true);
+                }
+            }
+        } else {
+            // Not needed for Android 13 and below
+            LogUtil.i("PermissionManager", "Full-screen intent not required on this API level");
+            if (callback != null) {
+                callback.onFullScreenIntentPermissionResult(true);
+            }
+        }
+    }
+
+    /**
+     * Request full-screen intent permission by launching settings (Android 14+)
+     */
+    @RequiresApi(api = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    private void requestFullScreenIntentPermission() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT);
+        intent.setData(Uri.parse("package:" + activity.getPackageName()));
+        fullScreenIntentLauncher.launch(intent);
+    }
+
+    /**
+     * Check if full-screen intent has been requested before
+     */
+    public boolean hasFullScreenIntentBeenRequested() {
+        return prefs.getBoolean(KEY_FULL_SCREEN_INTENT_REQUESTED, false);
+    }
+
+    /**
+     * Mark that full-screen intent has been requested
+     */
+    private void markFullScreenIntentRequested() {
+        prefs.edit().putBoolean(KEY_FULL_SCREEN_INTENT_REQUESTED, true).apply();
+    }
+
+    /**
+     * Check if the app can write system settings
+     */
+    public boolean canWriteSettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.System.canWrite(activity);
+        }
+        return true; // Pre-M, permission is granted automatically
+    }
+
+    /**
+     * Request WRITE_SETTINGS permission by launching settings
+     */
+    public void requestWriteSettingsPermission(PermissionCallback callback) {
+        this.callback = callback;
+        
+        if (canWriteSettings()) {
+            LogUtil.i("PermissionManager", "Write settings already granted");
+            if (callback != null) {
+                callback.onWriteSettingsPermissionResult(true);
+            }
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + activity.getPackageName()));
+            writeSettingsLauncher.launch(intent);
+        } else {
+            LogUtil.w("PermissionManager", "Write settings permission not required on this API level");
+            if (callback != null) {
+                callback.onWriteSettingsPermissionResult(true);
+            }
+        }
+    }
+
+    /**
+     * Check if WRITE_SETTINGS has been requested before
+     */
+    public boolean hasWriteSettingsBeenRequested() {
+        return prefs.getBoolean(KEY_WRITE_SETTINGS_REQUESTED, false);
+    }
+
+    /**
+     * Mark that WRITE_SETTINGS has been requested
+     */
+    private void markWriteSettingsRequested() {
+        prefs.edit().putBoolean(KEY_WRITE_SETTINGS_REQUESTED, true).apply();
     }
 }

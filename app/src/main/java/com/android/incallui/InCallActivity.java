@@ -580,10 +580,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         android.util.Log.i("InCallActivity", "==========================================");
         android.util.Log.i("InCallActivity", "CONFIGURATION CHANGED");
-        String orientationStr = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE 
-            ? "LANDSCAPE" 
-            : (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? "PORTRAIT" : "UNKNOWN");
-        android.util.Log.i("InCallActivity", "New orientation: " + orientationStr);
+        android.util.Log.i("InCallActivity", "New orientation: " + getOrientationString(newConfig.orientation));
         android.util.Log.i("InCallActivity", "Screen layout: " + newConfig.screenLayout);
         android.util.Log.i("InCallActivity", "KeyboardHidden: " + newConfig.keyboardHidden);
         android.util.Log.i("InCallActivity", "==========================================");
@@ -594,7 +591,9 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         setupDialpadAnimations();
         
         // Update UI for multiwindow mode if needed
-        // When in multiwindow mode and dialpad is not allowed, hide it
+        // In multiwindow mode, the dialpad may not fit properly alongside other windows.
+        // When the dialpad is not allowed in multiwindow mode (per resource config),
+        // we proactively hide it to avoid UI layout issues.
         if (isInMultiWindowMode() 
                 && !getResources().getBoolean(R.bool.incall_dialpad_allowed) 
                 && isDialpadVisible()) {
@@ -602,6 +601,22 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         }
         
         android.util.Log.i("InCallActivity", "Configuration change handled - activity NOT recreated");
+    }
+
+    /**
+     * Converts Configuration orientation constant to human-readable string for logging.
+     */
+    private String getOrientationString(int orientation) {
+        switch (orientation) {
+            case Configuration.ORIENTATION_LANDSCAPE:
+                return "LANDSCAPE";
+            case Configuration.ORIENTATION_PORTRAIT:
+                return "PORTRAIT";
+            case Configuration.ORIENTATION_UNDEFINED:
+                return "UNDEFINED";
+            default:
+                return "UNKNOWN(" + orientation + ")";
+        }
     }
 
     @Override

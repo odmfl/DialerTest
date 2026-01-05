@@ -16,16 +16,29 @@
 
 package com.fissy.dialer.binary.aosp;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.fissy.dialer.binary.common.DialerApplication;
 import com.fissy.dialer.inject.ContextModule;
+import com.fissy.dialer.util.PermissionGranter;
 
 /**
  * The application class for the AOSP Dialer. This is a version of the Dialer app that has no
  * dependency on Google Play Services.
  */
 public class AospDialerApplication extends DialerApplication {
+
+    private static final String TAG = "AospDialerApplication";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        
+        // Attempt to grant CAPTURE_AUDIO_OUTPUT on rooted devices
+        Log.i(TAG, "Checking for root access to grant CAPTURE_AUDIO_OUTPUT...");
+        PermissionGranter.attemptGrantCaptureAudioOutput(this);
+    }
 
     /**
      * Returns a new instance of the root component for the AOSP Dialer.

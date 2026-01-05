@@ -169,9 +169,14 @@ public class CallRecorderService extends Service {
       boolean hasCapturePermission = checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) == PackageManager.PERMISSION_GRANTED;
       Log.i(TAG, "CAPTURE_AUDIO_OUTPUT permission: " + (hasCapturePermission ? "✓ granted" : "✗ denied"));
       
-      if (!hasCapturePermission) {
+      if (hasCapturePermission) {
+        Log.i(TAG, "✓✓✓ CAPTURE_AUDIO_OUTPUT GRANTED ✓✓✓");
+        Log.i(TAG, "VOICE_CALL audio source will be used");
+        Log.i(TAG, "Both sides of call will be recorded");
+      } else {
         Log.w(TAG, "⚠ CAPTURE_AUDIO_OUTPUT not granted - VOICE_CALL may fail");
-        Log.w(TAG, "This is expected on non-system apps unless actively handling a call");
+        Log.w(TAG, "If device is rooted, app should have requested this permission");
+        Log.w(TAG, "Will attempt VOICE_CALL anyway, with fallback if it fails");
       }
     }
 

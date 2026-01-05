@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.fissy.dialer"
-    android:compileSdkVersion="29"
-    android:compileSdkVersionCodename="10">
+    android:compileSdkVersion="35"
+    android:compileSdkVersionCodename="15">
 
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -63,6 +62,10 @@
     <uses-permission android:name="com.oppo.launcher.permission.READ_SETTINGS" />
     <uses-permission android:name="com.oppo.launcher.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Android 13+ notification permission -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Permission for managing own calls -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
 
     <meta-data
         android:name="com.google.android.backup.api_key"

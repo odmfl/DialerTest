@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.fissy.dialer.R;
 import com.android.phone.common.util.SettingsUtil;
 import com.fissy.dialer.callrecord.impl.CallRecorderService;
+import com.fissy.dialer.util.PermissionsUtil;
 
 import java.lang.Boolean;
 import java.lang.CharSequence;
@@ -133,9 +134,11 @@ public class SoundSettingsFragment extends PreferenceFragment
     public void onResume() {
         super.onResume();
 
-        if (!Settings.System.canWrite(getContext())) {
+        if (!PermissionsUtil.canWriteSettings(getContext())) {
             // If the user launches this setting fragment, then toggles the WRITE_SYSTEM_SETTINGS
             // AppOp, then close the fragment since there is nothing useful to do.
+            PermissionsUtil.showWriteSettingsToast(getContext());
+            PermissionsUtil.requestWriteSettings(getContext());
             getActivity().onBackPressed();
             return;
         }
@@ -156,12 +159,10 @@ public class SoundSettingsFragment extends PreferenceFragment
      */
     @Override
     public boolean onPreferenceChange(Preference preference, Object objValue) {
-        if (!Settings.System.canWrite(getContext())) {
+        if (!PermissionsUtil.canWriteSettings(getContext())) {
             // A user shouldn't be able to get here, but this protects against monkey crashes.
-            Toast.makeText(
-                    getContext(),
-                    getResources().getString(R.string.toast_cannot_write_system_settings),
-                    Toast.LENGTH_SHORT).show();
+            PermissionsUtil.showWriteSettingsToast(getContext());
+            PermissionsUtil.requestWriteSettings(getContext());
             return true;
         }
         if (preference == mVibrateWhenRinging) {
@@ -182,11 +183,9 @@ public class SoundSettingsFragment extends PreferenceFragment
      */
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
-        if (!Settings.System.canWrite(getContext())) {
-            Toast.makeText(
-                    getContext(),
-                    getResources().getString(R.string.toast_cannot_write_system_settings),
-                    Toast.LENGTH_SHORT).show();
+        if (!PermissionsUtil.canWriteSettings(getContext())) {
+            PermissionsUtil.showWriteSettingsToast(getContext());
+            PermissionsUtil.requestWriteSettings(getContext());
             return true;
         }
         if (preference == mPlayDtmfTone) {

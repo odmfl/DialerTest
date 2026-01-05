@@ -392,6 +392,11 @@ public class InCallPresenter implements CallList.Listener, AudioModeProvider.Aud
             FilteredNumberAsyncQueryHandler filteredNumberQueryHandler,
             @NonNull SpeakEasyCallManager speakEasyCallManager) {
         Trace.beginSection("InCallPresenter.setUp");
+        android.util.Log.i("InCallPresenter", "════════════════════════════════════════");
+        android.util.Log.i("InCallPresenter", "INCALL PRESENTER - setUp() CALLED");
+        android.util.Log.i("InCallPresenter", "Context: " + (context != null ? "✓" : "✗"));
+        android.util.Log.i("InCallPresenter", "════════════════════════════════════════");
+        
         if (serviceConnected) {
             LogUtil.i("InCallPresenter.setUp", "New service connection replacing existing one.");
             if (context != this.context || callList != this.callList) {
@@ -458,6 +463,7 @@ public class InCallPresenter implements CallList.Listener, AudioModeProvider.Aud
         addListener(motorolaInCallUiNotifier);
 
         LogUtil.d("InCallPresenter.setUp", "Finished InCallPresenter.setUp");
+        android.util.Log.i("InCallPresenter", "InCallPresenter setUp completed");
         Trace.endSection();
     }
 

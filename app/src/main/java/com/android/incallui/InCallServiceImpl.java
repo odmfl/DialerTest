@@ -72,6 +72,11 @@ public class InCallServiceImpl extends InCallService {
     @Override
     public void onCallAdded(Call call) {
         Trace.beginSection("InCallServiceImpl.onCallAdded");
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "CALL ADDED");
+        Log.i(TAG, "Call: " + (call != null ? call.toString() : "null"));
+        Log.i(TAG, "════════════════════════════════════════");
+        
         InCallPresenter.getInstance().onCallAdded(call);
         Trace.endSection();
     }
@@ -79,6 +84,11 @@ public class InCallServiceImpl extends InCallService {
     @Override
     public void onCallRemoved(Call call) {
         Trace.beginSection("InCallServiceImpl.onCallRemoved");
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "CALL REMOVED");
+        Log.i(TAG, "Call: " + (call != null ? call.toString() : "null"));
+        Log.i(TAG, "════════════════════════════════════════");
+        
         speakEasyCallManager.onCallRemoved(CallList.getInstance().getDialerCallFromTelecomCall(call));
 
         InCallPresenter.getInstance().onCallRemoved(call);
@@ -94,11 +104,11 @@ public class InCallServiceImpl extends InCallService {
 
     @Override
     public void onCreate() {
-        super.onCreate();
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "INCALL SERVICE - onCreate() CALLED");
+        Log.i(TAG, "════════════════════════════════════════");
         
-        Log.i(TAG, "==========================================");
-        Log.i(TAG, "IN-CALL SERVICE CREATED");
-        Log.i(TAG, "==========================================");
+        super.onCreate();
         
         this.speakEasyCallManager = SpeakEasyComponent.get(this).speakEasyCallManager();
         
@@ -110,15 +120,16 @@ public class InCallServiceImpl extends InCallService {
             Log.e(TAG, "✗ ERROR getting CallRecorder instance", e);
         }
         
-        Log.i(TAG, "==========================================");
+        Log.i(TAG, "InCallService onCreate completed");
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         Trace.beginSection("InCallServiceImpl.onBind");
-        Log.i(TAG, "==========================================");
-        Log.i(TAG, "ON BIND CALLED");
-        Log.i(TAG, "==========================================");
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "INCALL SERVICE - onBind() CALLED");
+        Log.i(TAG, "Intent: " + (intent != null ? intent.toString() : "null"));
+        Log.i(TAG, "════════════════════════════════════════");
         
         final Context context = getApplicationContext();
         final ContactInfoCache contactInfoCache = ContactInfoCache.getInstance(context);
@@ -160,6 +171,7 @@ public class InCallServiceImpl extends InCallService {
         CallList.getInstance().addListener(feedbackListener);
 
         IBinder iBinder = super.onBind(intent);
+        Log.i(TAG, "onBind completed, returning: " + (iBinder != null ? "valid binder" : "null"));
         Trace.endSection();
         return iBinder;
     }
@@ -194,6 +206,10 @@ public class InCallServiceImpl extends InCallService {
     @Override
     public boolean onUnbind(Intent intent) {
         Trace.beginSection("InCallServiceImpl.onUnbind");
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "INCALL SERVICE - onUnbind() CALLED");
+        Log.i(TAG, "════════════════════════════════════════");
+        
         super.onUnbind(intent);
 
         InCallPresenter.getInstance().onServiceUnbind();
@@ -205,9 +221,9 @@ public class InCallServiceImpl extends InCallService {
 
     private void tearDown() {
         Trace.beginSection("InCallServiceImpl.tearDown");
-        Log.i(TAG, "==========================================");
-        Log.i(TAG, "TEAR DOWN");
-        Log.i(TAG, "==========================================");
+        Log.i(TAG, "════════════════════════════════════════");
+        Log.i(TAG, "INCALL SERVICE - TEAR DOWN");
+        Log.i(TAG, "════════════════════════════════════════");
         
         // Tear down the InCall system
         InCallPresenter.getInstance().tearDown();

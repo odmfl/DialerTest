@@ -233,6 +233,11 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onCreate(Bundle bundle) {
         Trace.beginSection("InCallActivity.onCreate");
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        Log.i("InCallActivity", "INCALL ACTIVITY - onCreate() CALLED");
+        Log.i("InCallActivity", "Bundle: " + (bundle != null ? "not null (restoring state)" : "null (new instance)"));
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        
         super.onCreate(bundle);
 
         preferredAccountWorkerResultListener =
@@ -305,6 +310,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
         pseudoBlackScreenOverlay = findViewById(R.id.psuedo_black_screen_overlay);
         sendBroadcast(CallPendingActivity.getFinishBroadcast());
+        Log.i("InCallActivity", "InCallActivity onCreate completed");
         Trace.endSection();
         MetricsComponent.get(this)
                 .metrics()
@@ -471,6 +477,10 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onStart() {
         Trace.beginSection("InCallActivity.onStart");
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        Log.i("InCallActivity", "INCALL ACTIVITY - onStart() CALLED");
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        
         super.onStart();
 
         isVisible = true;
@@ -491,12 +501,14 @@ public class InCallActivity extends TransactionSafeFragmentActivity
             showDialpadFragment(false, false);
         }
 
+        Log.i("InCallActivity", "InCallActivity onStart completed");
         Trace.endSection();
     }
 
     @Override
     protected void onResume() {
         Trace.beginSection("InCallActivity.onResume");
+        Log.i("InCallActivity", "InCallActivity onResume() called");
         super.onResume();
 
         if (!InCallPresenter.getInstance().isReadyForTearDown()) {
@@ -546,6 +558,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onPause() {
         Trace.beginSection("InCallActivity.onPause");
+        Log.i("InCallActivity", "InCallActivity onPause() called");
         super.onPause();
 
         DialpadFragment dialpadFragment = getDialpadFragment();
@@ -560,6 +573,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onStop() {
         Trace.beginSection("InCallActivity.onStop");
+        Log.i("InCallActivity", "InCallActivity onStop() called");
         isVisible = false;
         super.onStop();
 
@@ -596,6 +610,10 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onDestroy() {
         Trace.beginSection("InCallActivity.onDestroy");
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        Log.i("InCallActivity", "INCALL ACTIVITY - onDestroy() CALLED");
+        Log.i("InCallActivity", "════════════════════════════════════════");
+        
         super.onDestroy();
 
         InCallPresenter.getInstance().unsetActivity(this);

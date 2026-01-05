@@ -138,6 +138,10 @@ public class InCallFragment extends Fragment
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        android.util.Log.i("InCallFragment", "INCALL FRAGMENT - onCreate() CALLED");
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        
         super.onCreate(savedInstanceState);
         inCallButtonUiDelegate =
                 FragmentUtils.getParent(this, InCallButtonUiDelegateFactory.class)
@@ -146,6 +150,8 @@ public class InCallFragment extends Fragment
             inCallButtonUiDelegate.onRestoreInstanceState(savedInstanceState);
             stateRestored = true;
         }
+        
+        android.util.Log.i("InCallFragment", "InCallFragment onCreate completed");
     }
 
     @Nullable
@@ -155,12 +161,20 @@ public class InCallFragment extends Fragment
             @NonNull LayoutInflater layoutInflater,
             @Nullable ViewGroup viewGroup,
             @Nullable Bundle bundle) {
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        android.util.Log.i("InCallFragment", "INCALL FRAGMENT - onCreateView() CALLED");
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        
         LogUtil.i("InCallFragment.onCreateView", null);
         getActivity().setTheme(R.style.Theme_InCallScreen);
         // Bypass to avoid StrictModeResourceMismatchViolation
         final View view =
                 StrictModeUtils.bypass(
                         () -> layoutInflater.inflate(R.layout.frag_incall_voice, viewGroup, false));
+        
+        android.util.Log.i("InCallFragment", "Layout inflated successfully");
+        android.util.Log.i("InCallFragment", "Root view class: " + (view != null ? view.getClass().getName() : "null"));
+        
         contactGridManager =
                 new ContactGridManager(
                         view,
@@ -209,11 +223,14 @@ public class InCallFragment extends Fragment
                     public void onViewDetachedFromWindow(View v) {
                     }
                 });
+        
+        android.util.Log.i("InCallFragment", "onCreateView completed");
         return view;
     }
 
     @Override
     public void onResume() {
+        android.util.Log.i("InCallFragment", "InCallFragment onResume() called");
         super.onResume();
         inCallButtonUiDelegate.refreshMuteState();
         inCallScreenDelegate.onInCallScreenResumed();
@@ -221,6 +238,10 @@ public class InCallFragment extends Fragment
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle bundle) {
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        android.util.Log.i("InCallFragment", "INCALL FRAGMENT - onViewCreated() CALLED");
+        android.util.Log.i("InCallFragment", "════════════════════════════════════════");
+        
         LogUtil.i("InCallFragment.onViewCreated", null);
         super.onViewCreated(view, bundle);
         inCallScreenDelegate =
@@ -246,6 +267,21 @@ public class InCallFragment extends Fragment
 
         inCallScreenDelegate.onInCallScreenDelegateInit(this);
         inCallScreenDelegate.onInCallScreenReady();
+        
+        // Diagnostic check for call record button
+        android.util.Log.i("InCallFragment", "Checking for call record button in view hierarchy...");
+        View recordButton = view.findViewById(R.id.callRecordButton);
+        if (recordButton != null) {
+            android.util.Log.i("InCallFragment", "✓✓✓ RECORD BUTTON FOUND IN LAYOUT ✓✓✓");
+            android.util.Log.i("InCallFragment", "Button class: " + recordButton.getClass().getName());
+            android.util.Log.i("InCallFragment", "Button visible: " + (recordButton.getVisibility() == View.VISIBLE));
+            android.util.Log.i("InCallFragment", "Button clickable: " + recordButton.isClickable());
+        } else {
+            android.util.Log.i("InCallFragment", "✗✗✗ RECORD BUTTON NOT FOUND IN LAYOUT ✗✗✗");
+            android.util.Log.i("InCallFragment", "Button with id 'callRecordButton' does not exist in this view");
+        }
+        
+        android.util.Log.i("InCallFragment", "onViewCreated completed");
     }
 
     @Override

@@ -44,6 +44,15 @@ public abstract class DialerApplication extends Application implements HasRootCo
 
     @Override
     public void onCreate() {
+        android.util.Log.i("DIAGNOSTIC_START", "════════════════════════════════════════");
+        android.util.Log.i("DIAGNOSTIC_START", "════════════════════════════════════════");
+        android.util.Log.i("DIAGNOSTIC_START", "DIALER APP STARTING - DIAGNOSTIC MODE");
+        android.util.Log.i("DIAGNOSTIC_START", "Version: 3.0 (Call Recording Diagnostics)");
+        android.util.Log.i("DIAGNOSTIC_START", "Timestamp: " + System.currentTimeMillis());
+        android.util.Log.i("DIAGNOSTIC_START", "Package: " + getPackageName());
+        android.util.Log.i("DIAGNOSTIC_START", "════════════════════════════════════════");
+        android.util.Log.i("DIAGNOSTIC_START", "════════════════════════════════════════");
+        
         Trace.beginSection("DialerApplication.onCreate");
         StrictModeComponent.get(this).getDialerStrictMode().onApplicationCreate(this);
         super.onCreate();
@@ -62,6 +71,8 @@ public abstract class DialerApplication extends Application implements HasRootCo
         if (BuildCompat.isAtLeastO()) {
             NotificationChannelManager.initChannels(this);
         }
+        
+        android.util.Log.i("DialerApplication", "Application onCreate completed");
         Trace.endSection();
     }
 

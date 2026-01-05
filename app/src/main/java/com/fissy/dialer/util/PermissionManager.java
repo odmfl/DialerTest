@@ -67,6 +67,7 @@ public class PermissionManager {
     private PermissionCallback callback;
     private ActivityResultLauncher<String[]> multiplePermissionsLauncher;
     private ActivityResultLauncher<Intent> dialerRoleLauncher;
+    private boolean isInitialized = false;
 
     public interface PermissionCallback {
         void onPermissionsGranted(Map<String, Boolean> results);
@@ -76,7 +77,17 @@ public class PermissionManager {
     public PermissionManager(@NonNull FragmentActivity activity) {
         this.activity = activity;
         this.prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * Initialize launchers. This should be called from onCreate or a similar early lifecycle method.
+     */
+    public void initialize() {
+        if (isInitialized) {
+            return;
+        }
         initializeLaunchers();
+        isInitialized = true;
     }
 
     private void initializeLaunchers() {
@@ -119,8 +130,7 @@ public class PermissionManager {
     public boolean hasAllRequiredPermissions() {
         List<String> permissions = getRequiredPermissionsList();
         for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(activity, permission) 
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
                 return false;
             }
         }
@@ -152,8 +162,7 @@ public class PermissionManager {
         List<String> required = getRequiredPermissionsList();
         
         for (String permission : required) {
-            if (ContextCompat.checkSelfPermission(activity, permission) 
-                    != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
                 denied.add(permission);
             }
         }

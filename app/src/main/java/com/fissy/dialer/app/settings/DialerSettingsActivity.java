@@ -298,12 +298,9 @@ public class DialerSettingsActivity extends AppCompatPreferenceActivity {
     public void onHeaderClick(Header header, int position) {
         if (header.id == R.id.settings_header_sounds_and_vibration) {
 
-            if (!Settings.System.canWrite(this)) {
-                Toast.makeText(
-                                this,
-                                getResources().getString(R.string.toast_cannot_write_system_settings),
-                                Toast.LENGTH_SHORT)
-                        .show();
+            if (!PermissionsUtil.canWriteSettings(this)) {
+                PermissionsUtil.showWriteSettingsToast(this);
+                PermissionsUtil.requestWriteSettings(this);
                 startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
                 return;
             }

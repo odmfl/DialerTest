@@ -824,20 +824,9 @@
     <string name="terms_of_service_url">http://www.google.com/policies/terms</string>
     <string name="toast_cannot_write_system_settings">Phone app does not have permission to write to system settings.</string>
     
-    <!-- WRITE_SETTINGS Permission Strings -->
-    <string name="write_settings_success">Permission granted successfully!</string>
-    <string name="write_settings_denied_title">Permission Not Granted</string>
-    <string name="write_settings_denied_message">To modify system settings for ringtones and notifications, please enable \"Modify system settings\" permission in Android settings.</string>
-    <string name="write_settings_retry_button">Try Again</string>
-    <string name="write_settings_not_now_button">Not Now</string>
-    
-    <!-- Write Settings Warning Dialog Strings -->
-    <string name="write_settings_warning_title">Modify System Settings Permission</string>
-    <string name="write_settings_warning_message">This permission allows the app to modify system settings like ringtones and notification sounds.</string>
-    <string name="write_settings_instructions">To enable this permission:\n\n1. Tap \"Take me to Settings\" below\n2. Find \"Modify system settings\" toggle\n3. Turn ON the toggle switch\n4. Press back to return</string>
-    <string name="write_settings_manual_required">This permission requires manual action in Android settings.</string>
-    <string name="write_settings_button_allow">Take me to Settings</string>
-    <string name="write_settings_button_cancel">Cancel</string>
+    <!-- WRITE_SETTINGS Permission - Simple Implementation -->
+    <string name="write_settings_required">Modify system settings permission is required</string>
+    <string name="write_settings_explanation">To modify ringtones and system audio settings, please enable \"Modify system settings\" in Android Settings.</string>
     
     <!-- Full-Screen Intent Permission Strings -->
     <string name="full_screen_intent_denied_title">Full-Screen Notifications Permission</string>

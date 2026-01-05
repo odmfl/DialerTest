@@ -26,6 +26,7 @@ import android.util.AttributeSet;
 import android.widget.Toast;
 
 import com.fissy.dialer.R;
+import com.fissy.dialer.util.PermissionsUtil;
 
 /**
  * RingtonePreference which doesn't show default ringtone setting.
@@ -49,12 +50,9 @@ public class DefaultRingtonePreference extends RingtonePreference {
 
     @Override
     protected void onSaveRingtone(Uri ringtoneUri) {
-        if (!Settings.System.canWrite(getContext())) {
-            Toast.makeText(
-                            getContext(),
-                            getContext().getResources().getString(R.string.toast_cannot_write_system_settings),
-                            Toast.LENGTH_SHORT)
-                    .show();
+        if (!PermissionsUtil.canWriteSettings(getContext())) {
+            PermissionsUtil.showWriteSettingsToast(getContext());
+            PermissionsUtil.requestWriteSettings(getContext());
             return;
         }
         RingtoneManager.setActualDefaultRingtoneUri(getContext(), getRingtoneType(), ringtoneUri);

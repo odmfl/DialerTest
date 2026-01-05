@@ -36,6 +36,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.content.ContextCompat;
@@ -253,5 +256,40 @@ public class PermissionsUtil {
                 .edit()
                 .putBoolean(PREFERENCE_CAMERA_ALLOWED_BY_USER, true)
                 .apply();
+    }
+
+    /**
+     * Check if app has WRITE_SETTINGS permission
+     */
+    public static boolean canWriteSettings(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return Settings.System.canWrite(context);
+        }
+        return true; // Pre-M, permission granted automatically
+    }
+
+    /**
+     * Launch settings screen for WRITE_SETTINGS permission
+     * Call this when you need the permission and don't have it
+     */
+    public static void requestWriteSettings(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + context.getPackageName()));
+            if (intent.resolveActivity(context.getPackageManager()) != null) {
+                context.startActivity(intent);
+            }
+        }
+    }
+
+    /**
+     * Show a simple toast explaining WRITE_SETTINGS permission
+     */
+    public static void showWriteSettingsToast(Context context) {
+        Toast.makeText(
+            context,
+            R.string.write_settings_explanation,
+            Toast.LENGTH_LONG
+        ).show();
     }
 }

@@ -1073,6 +1073,8 @@
     <string name="permission_default_dialer_title">Set as Default Dialer</string>
     <string name="permission_default_dialer_message">To manage calls and access call features, please set this app as your default dialer.</string>
     <string name="permission_default_dialer_grant">Set as Default</string>
+    <string name="all_permissions_dialog_title">Welcome to Dialer</string>
+    <string name="all_permissions_dialog_message">To use this app, the following permissions are required:</string>
     <string name="permission_settings_button">Open Settings</string>
     <string name="permission_rationale_title">Permissions Required</string>
     <string name="permission_rationale_message">Some permissions are required for the app to work properly. Please grant them in settings.</string>

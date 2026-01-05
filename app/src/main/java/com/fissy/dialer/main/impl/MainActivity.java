@@ -30,7 +30,11 @@ import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorCode
 import com.fissy.dialer.interactions.PhoneNumberInteraction.InteractionErrorListener;
 import com.fissy.dialer.main.MainActivityPeer;
 import com.fissy.dialer.main.impl.bottomnav.BottomNavBar.TabIndex;
+import com.fissy.dialer.util.PermissionManager;
 import com.fissy.dialer.util.TransactionSafeActivity;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is the main activity for dialer. It hosts favorites, call log, search, dialpad, etc...
@@ -40,9 +44,12 @@ public class MainActivity extends TransactionSafeActivity
         implements MainActivityPeer.PeerSupplier,
         // TODO(calderwoodra): remove these 2 interfaces when we migrate to new speed dial fragment
         InteractionErrorListener,
-        DisambigDialogDismissedListener {
+        DisambigDialogDismissedListener,
+        AllPermissionsDialogFragment.AllPermissionsDialogListener,
+        PermissionManager.PermissionCallback {
 
     private MainActivityPeer activePeer;
+    private PermissionManager permissionManager;
 
     /**
      * {@link android.content.BroadcastReceiver} that shows a dialog to block a number and/or report
@@ -80,12 +87,19 @@ public class MainActivity extends TransactionSafeActivity
         super.onCreate(savedInstanceState);
         LogUtil.enterBlock("MainActivity.onCreate");
         
+        // Initialize PermissionManager
+        permissionManager = new PermissionManager(this);
+        permissionManager.initialize();
+        
         // If peer was set by the super, don't reset it.
         activePeer = getNewPeer();
         activePeer.onActivityCreate(savedInstanceState);
 
         showBlockReportSpamDialogReceiver =
                 new ShowBlockReportSpamDialogReceiver(getSupportFragmentManager());
+                
+        // Check if this is the first launch and permissions are missing
+        checkAndShowPermissionsDialog();
     }
 
     protected MainActivityPeer getNewPeer() {
@@ -178,5 +192,80 @@ public class MainActivity extends TransactionSafeActivity
     @Override
     public MainActivityPeer getPeer() {
         return activePeer;
+    }
+
+    /**
+     * Check if this is the first launch and show permissions dialog if needed
+     */
+    private void checkAndShowPermissionsDialog() {
+        if (permissionManager.isFirstRequest() && !permissionManager.hasAllRequiredPermissions()) {
+            LogUtil.i("MainActivity", "First launch detected, showing permissions dialog");
+            showAllPermissionsDialog();
+        }
+    }
+
+    /**
+     * Show the all permissions dialog
+     */
+    private void showAllPermissionsDialog() {
+        List<String> permissions = permissionManager.getRequiredPermissionsList();
+        AllPermissionsDialogFragment dialog = AllPermissionsDialogFragment.newInstance(permissions);
+        dialog.show(getSupportFragmentManager(), AllPermissionsDialogFragment.TAG);
+    }
+
+    // AllPermissionsDialogFragment.AllPermissionsDialogListener implementation
+
+    @Override
+    public void onGrantPermissionsClicked() {
+        LogUtil.i("MainActivity", "User clicked grant permissions");
+        permissionManager.requestPermissions(this);
+    }
+
+    @Override
+    public void onPermissionsDialogDismissed() {
+        LogUtil.i("MainActivity", "Permissions dialog dismissed without granting");
+        // User chose "Not Now", dialog is dismissed
+    }
+
+    // PermissionManager.PermissionCallback implementation
+
+    @Override
+    public void onPermissionsGranted(Map<String, Boolean> results) {
+        LogUtil.i("MainActivity", "Permissions result received: " + results);
+        
+        // Check if all permissions were granted
+        boolean allGranted = true;
+        for (Boolean granted : results.values()) {
+            if (granted == null || !granted) {
+                allGranted = false;
+                break;
+            }
+        }
+        
+        // If all permissions granted, automatically prompt for default dialer role
+        if (allGranted && !permissionManager.isDefaultDialer()) {
+            LogUtil.i("MainActivity", "All permissions granted, requesting default dialer role");
+            permissionManager.requestDefaultDialerRole(this);
+        }
+    }
+
+    @Override
+    public void onDefaultDialerRoleResult(boolean granted) {
+        LogUtil.i("MainActivity", "Default dialer role result: " + granted);
+        if (granted) {
+            LogUtil.i("MainActivity", "App is now the default dialer");
+        } else {
+            LogUtil.i("MainActivity", "User declined to set as default dialer");
+        }
+    }
+
+    @Override
+    public void onFullScreenIntentPermissionResult(boolean granted) {
+        LogUtil.i("MainActivity", "Full screen intent permission result: " + granted);
+    }
+
+    @Override
+    public void onWriteSettingsPermissionResult(boolean granted) {
+        LogUtil.i("MainActivity", "Write settings permission result: " + granted);
     }
 }

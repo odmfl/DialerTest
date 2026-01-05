@@ -184,7 +184,7 @@ public class PermissionManager {
     /**
      * Get list of required permissions based on Android version
      */
-    private List<String> getRequiredPermissionsList() {
+    public List<String> getRequiredPermissionsList() {
         List<String> permissions = new ArrayList<>();
         for (String permission : REQUIRED_PERMISSIONS) {
             permissions.add(permission);

@@ -342,26 +342,34 @@ public class CallButtonPresenter
 
     @Override
     public void callRecordClicked(boolean checked) {
+        LogUtil.i("CallButtonPresenter.callRecordClicked", "checked: " + checked);
         CallRecorder recorder = CallRecorder.getInstance();
         if (checked) {
+            LogUtil.d("CallButtonPresenter", "Starting recording flow");
             final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
             boolean warningPresented = prefs.getBoolean(KEY_RECORDING_WARNING_PRESENTED, false);
             if (!warningPresented) {
+                LogUtil.d("CallButtonPresenter", "Showing recording warning dialog");
                 new AlertDialog.Builder(getActivity())
                         .setTitle(R.string.recording_warning_title)
                         .setMessage(R.string.recording_warning_text)
                         .setPositiveButton(R.string.onscreenCallRecordText, (dialog, which) -> {
+                            LogUtil.d("CallButtonPresenter", "User accepted recording warning");
                             prefs.edit()
                                     .putBoolean(KEY_RECORDING_WARNING_PRESENTED, true)
                                     .apply();
                             startCallRecordingOrAskForPermission();
                         })
-                        .setNegativeButton(android.R.string.cancel, null)
+                        .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                            LogUtil.d("CallButtonPresenter", "User cancelled recording warning");
+                        })
                         .show();
             } else {
+                LogUtil.d("CallButtonPresenter", "Warning already presented, proceeding");
                 startCallRecordingOrAskForPermission();
             }
         } else {
+            LogUtil.d("CallButtonPresenter", "Stopping recording - isRecording: " + recorder.isRecording());
             if (recorder.isRecording()) {
                 recorder.finishRecording();
             }
@@ -369,10 +377,21 @@ public class CallButtonPresenter
     }
 
     private void startCallRecordingOrAskForPermission() {
+        LogUtil.i("CallButtonPresenter.startCallRecordingOrAskForPermission", "checking permissions");
         if (hasAllPermissions(CallRecorder.REQUIRED_PERMISSIONS)) {
+            LogUtil.d("CallButtonPresenter", "All permissions granted");
             CallRecorder recorder = CallRecorder.getInstance();
-            recorder.startRecording(call.getNumber(), call.getCreationTimeMillis());
+            String number = call != null ? call.getNumber() : "unknown";
+            long time = call != null ? call.getCreationTimeMillis() : System.currentTimeMillis();
+            // Mask phone number for privacy - only show last 4 digits
+            String maskedNumber = number != null && number.length() > 4 
+                ? "***" + number.substring(number.length() - 4) 
+                : "****";
+            LogUtil.d("CallButtonPresenter", "Starting recording for: " + maskedNumber);
+            boolean started = recorder.startRecording(number, time);
+            LogUtil.d("CallButtonPresenter", "Recording start result: " + started);
         } else {
+            LogUtil.d("CallButtonPresenter", "Requesting permissions");
             inCallButtonUi.requestCallRecordingPermissions(CallRecorder.REQUIRED_PERMISSIONS);
         }
     }
@@ -380,9 +399,11 @@ public class CallButtonPresenter
     private boolean hasAllPermissions(String[] permissions) {
         for (String p : permissions) {
             if (context.checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                LogUtil.d("CallButtonPresenter", "Permission not granted: " + p);
                 return false;
             }
         }
+        LogUtil.d("CallButtonPresenter", "All permissions granted");
         return true;
     }
 

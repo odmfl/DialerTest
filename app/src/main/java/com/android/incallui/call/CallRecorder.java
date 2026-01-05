@@ -212,7 +212,11 @@ public class CallRecorder implements CallList.Listener {
             .show();
       }
     } catch (RemoteException e) {
-      Log.e(TAG, "Failed to start recording " + phoneNumber + ", " + new Date(creationTime), e);
+      // Mask phone number for privacy
+      String maskedNumber = phoneNumber != null && phoneNumber.length() > 4 
+          ? "***" + phoneNumber.substring(phoneNumber.length() - 4) 
+          : "****";
+      Log.e(TAG, "Failed to start recording for " + maskedNumber + ", time: " + creationTime, e);
       Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
           .show();
     }

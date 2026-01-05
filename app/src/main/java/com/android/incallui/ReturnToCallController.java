@@ -365,7 +365,8 @@ public class ReturnToCallController implements InCallUiListener, Listener, Audio
     private PendingIntent createActionIntent(String action) {
         Intent intent = new Intent(context, ReturnToCallActionReceiver.class);
         intent.setAction(action);
-        return PendingIntent.getBroadcast(context, 0, intent, 0);
+        int flags = PendingIntent.FLAG_IMMUTABLE;
+        return PendingIntent.getBroadcast(context, 0, intent, flags);
     }
 
     @NonNull

@@ -18,16 +18,18 @@
 <resources>
     <bool name="call_recording_enabled">true</bool>
     <!-- Audio source for call recording:
-         1 (MIC) for microphone audio source - works on all devices but may only record one side
-         6 (VOICE_RECOGNITION) for voice recognition - best for non-system apps on Android 9+
-         7 (VOICE_COMMUNICATION) for voice communication - works on some Android 10+ devices
-         4 (VOICE_CALL) if supported by device - requires system privileges, not recommended
+         The service uses VOICE_CALL (4) on Android 10+ (API 29+) through InCallService
+         to capture actual call audio (both sides). This works because the app is registered
+         as an InCallService in AndroidManifest.xml.
          
-         Note: The service now implements automatic fallback:
-         - Android 12+: VOICE_RECOGNITION (best compatibility)
-         - Android 10-11: VOICE_COMMUNICATION
-         - Android 9 and below: Uses this config value (MIC by default)
-         - If any source fails, automatically falls back to VOICE_RECOGNITION then MIC
+         For Android 9 and below, this config value is used:
+         1 (MIC) for microphone audio source - works on all devices but may only record one side
+         6 (VOICE_RECOGNITION) for voice recognition - alternative for non-system apps
+         
+         Note: The service implements automatic runtime fallback if audio source fails:
+         - Android 10+: Tries VOICE_CALL first (captures both sides of call)
+         - Android 9 and below: Tries this config value (MIC by default)
+         - If primary source fails: Falls back to VOICE_RECOGNITION, then MIC
     -->
     <integer name="call_recording_audio_source">1</integer>
 </resources>

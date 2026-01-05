@@ -19,6 +19,7 @@ package com.fissy.dialer.main.impl;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.fissy.dialer.blockreportspam.ShowBlockReportSpamDialogReceiver;
@@ -367,10 +368,10 @@ public class MainActivity extends TransactionSafeActivity
     private void showWriteSettingsSuccessMessage() {
         LogUtil.i("MainActivity", "WRITE_SETTINGS permission granted");
         // Show toast message
-        android.widget.Toast.makeText(
+        Toast.makeText(
             this, 
             R.string.write_settings_success, 
-            android.widget.Toast.LENGTH_SHORT
+            Toast.LENGTH_SHORT
         ).show();
     }
 

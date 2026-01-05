@@ -90,4 +90,5 @@
     <color name="videocall_overlay_background_color">#7e000000</color>
     <color name="voicemail_icon_disabled_tint">#80000000</color>
     <color name="voicemail_playpause_icon_tint">?colorIcon</color>
+    <color name="background_instruction_box">#F5F5F5</color>
 </resources>

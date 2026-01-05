@@ -607,6 +607,14 @@ public class CallButtonPresenter
         final CallRecorder recorder = CallRecorder.getInstance();
         final boolean showCallRecordOption = recorder.canRecordInCurrentCountry()
                 && !isVideo && call.getState() == DialerCallState.ACTIVE;
+        
+        LogUtil.i("CallButtonPresenter", "==========================================");
+        LogUtil.i("CallButtonPresenter", "UPDATING BUTTON STATES");
+        LogUtil.i("CallButtonPresenter", "Call state: " + call.getState());
+        LogUtil.i("CallButtonPresenter", "Is video: " + isVideo);
+        LogUtil.i("CallButtonPresenter", "Can record in country: " + recorder.canRecordInCurrentCountry());
+        LogUtil.i("CallButtonPresenter", "Show record button: " + showCallRecordOption);
+        LogUtil.i("CallButtonPresenter", "==========================================");
 
         otherAccount = TelecomUtil.getOtherAccount(getContext(), call.getAccountHandle());
         boolean showSwapSim =

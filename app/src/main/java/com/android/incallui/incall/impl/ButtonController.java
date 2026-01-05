@@ -450,6 +450,7 @@ interface ButtonController {
 
         @Override
         public void setEnabled(boolean isEnabled) {
+            android.util.Log.i("CallRecordButtonController", "setEnabled: " + isEnabled);
             this.isEnabled = isEnabled;
             if (button != null) {
                 button.setEnabled(isEnabled);
@@ -463,9 +464,12 @@ interface ButtonController {
 
         @Override
         public void setAllowed(boolean isAllowed) {
+            android.util.Log.i("CallRecordButtonController", "setAllowed: " + isAllowed);
             this.isAllowed = isAllowed;
             if (button != null) {
                 button.setVisibility(isAllowed ? View.VISIBLE : View.INVISIBLE);
+                android.util.Log.i("CallRecordButtonController", "Button visibility set to: " + 
+                    (isAllowed ? "VISIBLE" : "INVISIBLE"));
             }
         }
 
@@ -516,6 +520,12 @@ interface ButtonController {
 
         @Override
         public void onClick(View v) {
+            android.util.Log.i("CallRecordButtonController", "==========================================");
+            android.util.Log.i("CallRecordButtonController", "RECORD BUTTON CLICKED!");
+            android.util.Log.i("CallRecordButtonController", "Current state: " + (isChecked ? "RECORDING" : "NOT RECORDING"));
+            android.util.Log.i("CallRecordButtonController", "Will " + (isChecked ? "STOP" : "START") + " recording");
+            android.util.Log.i("CallRecordButtonController", "==========================================");
+            
             delegate.callRecordClicked(!isChecked);
         }
     }

@@ -13,13 +13,21 @@ public class PermissionGranter {
     
     /**
      * Attempt to grant CAPTURE_AUDIO_OUTPUT permission if device is rooted.
+     * This method runs synchronously and should be called from a background thread.
      */
-    public static void attemptGrantCaptureAudioOutput(Context context) {
+    private static void attemptGrantCaptureAudioOutputSync(Context context) {
         Log.i(TAG, "==========================================");
         Log.i(TAG, "CHECKING CAPTURE_AUDIO_OUTPUT PERMISSION");
         Log.i(TAG, "==========================================");
         
         String packageName = context.getPackageName();
+        
+        // Validate package name format (basic validation to prevent command injection)
+        if (packageName == null || !packageName.matches("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)*$")) {
+            Log.e(TAG, "Invalid package name format: " + packageName);
+            Log.i(TAG, "==========================================");
+            return;
+        }
         
         // Check if permission is already granted
         boolean isGranted = context.checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) 
@@ -79,5 +87,23 @@ public class PermissionGranter {
         }
         
         Log.i(TAG, "==========================================");
+    }
+    
+    /**
+     * Attempt to grant CAPTURE_AUDIO_OUTPUT permission if device is rooted.
+     * This method runs the check on a background thread to avoid blocking the main thread.
+     */
+    public static void attemptGrantCaptureAudioOutput(Context context) {
+        // Run on a background thread to avoid ANRs
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    attemptGrantCaptureAudioOutputSync(context);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in background root permission grant", e);
+                }
+            }
+        }, "RootPermissionGranter").start();
     }
 }

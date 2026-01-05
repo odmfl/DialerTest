@@ -70,8 +70,13 @@ public class RootUtil {
         Process process = null;
         try {
             process = Runtime.getRuntime().exec("su");
-            int exitCode = process.waitFor();
-            return exitCode == 0;
+            // Wait up to 3 seconds for the process to complete
+            boolean finished = process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+            if (!finished) {
+                Log.w(TAG, "su process timed out");
+                return false;
+            }
+            return process.exitValue() == 0;
         } catch (Exception e) {
             return false;
         } finally {
@@ -83,6 +88,7 @@ public class RootUtil {
     
     /**
      * Execute a command with root privileges.
+     * @param command The command to execute (must be a safe, validated command)
      * @return true if command executed successfully
      */
     public static boolean executeRootCommand(String command) {
@@ -92,6 +98,12 @@ public class RootUtil {
         DataOutputStream os = null;
         
         try {
+            // Validate command is not empty or dangerous
+            if (command == null || command.trim().isEmpty()) {
+                Log.e(TAG, "Invalid command: null or empty");
+                return false;
+            }
+            
             Log.i(TAG, "==========================================");
             Log.i(TAG, "EXECUTING ROOT COMMAND");
             Log.i(TAG, "Command: " + command);
@@ -104,7 +116,15 @@ public class RootUtil {
             os.writeBytes("exit\n");
             os.flush();
             
-            int exitCode = process.waitFor();
+            // Wait up to 10 seconds for the command to complete
+            boolean finished = process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+            if (!finished) {
+                Log.e(TAG, "Command execution timed out");
+                Log.i(TAG, "==========================================");
+                return false;
+            }
+            
+            int exitCode = process.exitValue();
             
             // Read output
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

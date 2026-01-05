@@ -155,7 +155,6 @@ public class CallRecorderService extends Service {
       try {
         audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
         mMediaRecorder.reset();
-        mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(audioSource);
         audioSourceSet = true;
         Log.d(TAG, "Using fallback VOICE_RECOGNITION audio source");
@@ -166,7 +165,6 @@ public class CallRecorderService extends Service {
         try {
           audioSource = MediaRecorder.AudioSource.MIC;
           mMediaRecorder.reset();
-          mMediaRecorder = new MediaRecorder();
           mMediaRecorder.setAudioSource(audioSource);
           audioSourceSet = true;
           Log.d(TAG, "Using fallback MIC audio source");

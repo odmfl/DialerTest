@@ -59,6 +59,7 @@ public class PermissionManager {
             Manifest.permission.WRITE_CALL_LOG,
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.WRITE_CONTACTS,
+            Manifest.permission.MANAGE_OWN_CALLS,
     };
 
     private final FragmentActivity activity;
@@ -299,6 +300,8 @@ public class PermissionManager {
                 return "Contacts (Write)";
             case Manifest.permission.POST_NOTIFICATIONS:
                 return "Notifications";
+            case Manifest.permission.MANAGE_OWN_CALLS:
+                return "Call Management";
             default:
                 return permission;
         }
@@ -323,6 +326,8 @@ public class PermissionManager {
                 return "Required to update contact information";
             case Manifest.permission.POST_NOTIFICATIONS:
                 return "Required to show incoming call and message notifications";
+            case Manifest.permission.MANAGE_OWN_CALLS:
+                return "Required to manage and handle incoming calls";
             default:
                 return "Required for app functionality";
         }

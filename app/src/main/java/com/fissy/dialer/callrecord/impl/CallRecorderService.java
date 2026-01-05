@@ -107,7 +107,11 @@ public class CallRecorderService extends Service {
     // Android 10+ (API 29+) can use VOICE_CALL through InCallService
     // This captures the actual call audio stream (both sides)
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-      Log.i(TAG, "Using VOICE_CALL audio source (Android 10+)");
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "AUDIO SOURCE SELECTION");
+      Log.i(TAG, "Android version: " + android.os.Build.VERSION.SDK_INT);
+      Log.i(TAG, "Using VOICE_CALL audio source (value: 4)");
+      Log.i(TAG, "==========================================");
       return MediaRecorder.AudioSource.VOICE_CALL;
     }
     
@@ -151,15 +155,29 @@ public class CallRecorderService extends Service {
       stopRecordingInternal();
     }
 
+    // Check RECORD_AUDIO permission
     if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
         != PackageManager.PERMISSION_GRANTED) {
-      Log.e(TAG, "✗ Record audio permission not granted, can't record call");
+      Log.e(TAG, "✗ RECORD_AUDIO permission not granted");
       return false;
+    }
+    Log.i(TAG, "✓ RECORD_AUDIO permission granted");
+
+    // Check CAPTURE_AUDIO_OUTPUT permission (needed for VOICE_CALL)
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+      boolean hasCapturePermission = checkSelfPermission("android.permission.CAPTURE_AUDIO_OUTPUT") == PackageManager.PERMISSION_GRANTED;
+      Log.i(TAG, "CAPTURE_AUDIO_OUTPUT permission: " + (hasCapturePermission ? "✓ granted" : "✗ denied"));
+      
+      if (!hasCapturePermission) {
+        Log.w(TAG, "⚠ CAPTURE_AUDIO_OUTPUT not granted - VOICE_CALL may fail");
+        Log.w(TAG, "This is expected on non-system apps unless actively handling a call");
+      }
     }
 
     Log.i(TAG, "✓ Starting recording - initializing MediaRecorder");
-
     mMediaRecorder = new MediaRecorder();
+    Log.i(TAG, "✓ MediaRecorder instance created");
+
     
     // Try multiple audio sources with fallback for non-rooted devices
     boolean audioSourceSet = false;
@@ -168,29 +186,45 @@ public class CallRecorderService extends Service {
     // Try the preferred audio source first
     try {
       audioSource = getAudioSource();
-      Log.i(TAG, "Trying primary audio source: " + audioSource);
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "SETTING AUDIO SOURCE");
+      Log.i(TAG, "Requested audio source: " + audioSource + " (4=VOICE_CALL, 6=VOICE_RECOGNITION, 1=MIC)");
+      Log.i(TAG, "==========================================");
+      
       mMediaRecorder.setAudioSource(audioSource);
       audioSourceSet = true;
+      
       Log.i(TAG, "✓ Successfully set audio source: " + audioSource);
     } catch (IllegalStateException e) {
-      Log.i(TAG, "⚠ Primary audio source not available, trying fallbacks", e);
+      Log.e(TAG, "==========================================");
+      Log.e(TAG, "✗ PRIMARY AUDIO SOURCE FAILED");
+      Log.e(TAG, "Failed audio source: " + audioSource);
+      Log.e(TAG, "This may happen if:");
+      Log.e(TAG, "  1. App is not the active InCallService");
+      Log.e(TAG, "  2. CAPTURE_AUDIO_OUTPUT permission denied");
+      Log.e(TAG, "  3. Device doesn't support VOICE_CALL for third-party apps");
+      Log.e(TAG, "Error message: " + e.getMessage());
+      Log.e(TAG, "Error cause: " + (e.getCause() != null ? e.getCause().getMessage() : "null"));
+      Log.e(TAG, "Attempting fallback to VOICE_RECOGNITION...");
+      Log.e(TAG, "==========================================", e);
       
       // Clean up failed MediaRecorder
       try {
         mMediaRecorder.release();
       } catch (Exception ex) {
-        // Ignore cleanup errors
+        Log.w(TAG, "Error releasing MediaRecorder: " + ex.getMessage());
       }
       
       // Fallback 1: Try VOICE_RECOGNITION (most compatible for non-system apps)
       try {
         audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+        Log.i(TAG, "Trying fallback: VOICE_RECOGNITION (6)");
         mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(audioSource);
         audioSourceSet = true;
-        Log.i(TAG, "✓ Using fallback VOICE_RECOGNITION audio source");
+        Log.i(TAG, "✓ Fallback VOICE_RECOGNITION successful (warning: may only record mic)");
       } catch (IllegalStateException e2) {
-        Log.i(TAG, "⚠ VOICE_RECOGNITION not available, trying MIC", e2);
+        Log.e(TAG, "✗ VOICE_RECOGNITION also failed, trying MIC as last resort", e2);
         
         // Clean up failed MediaRecorder
         try {
@@ -202,12 +236,17 @@ public class CallRecorderService extends Service {
         // Fallback 2: Try MIC (works on all devices)
         try {
           audioSource = MediaRecorder.AudioSource.MIC;
+          Log.i(TAG, "Trying last resort: MIC (1)");
           mMediaRecorder = new MediaRecorder();
           mMediaRecorder.setAudioSource(audioSource);
           audioSourceSet = true;
-          Log.i(TAG, "✓ Using fallback MIC audio source");
+          Log.i(TAG, "✓ Fallback MIC successful (warning: may only record mic)");
         } catch (IllegalStateException e3) {
-          Log.e(TAG, "✗ No audio source available", e3);
+          Log.e(TAG, "==========================================");
+          Log.e(TAG, "✗✗✗ ALL AUDIO SOURCES FAILED ✗✗✗");
+          Log.e(TAG, "Tried: VOICE_CALL, VOICE_RECOGNITION, MIC");
+          Log.e(TAG, "Device may not support call recording");
+          Log.e(TAG, "==========================================", e3);
         }
       }
     }
@@ -221,19 +260,30 @@ public class CallRecorderService extends Service {
     
     try {
       int formatChoice = getAudioFormatChoice();
-      Log.i(TAG, "Setting output format - choice: " + formatChoice);
+      Log.i(TAG, "==========================================");
+      Log.i(TAG, "CONFIGURING MEDIA RECORDER");
+      Log.i(TAG, "Format choice: " + formatChoice + " (0=AMR_WB, 1=AAC)");
+      
       mMediaRecorder.setOutputFormat(formatChoice == 0
           ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
+      Log.i(TAG, "✓ Output format set");
+      
       mMediaRecorder.setAudioEncoder(formatChoice == 0
           ? MediaRecorder.AudioEncoder.AMR_WB : MediaRecorder.AudioEncoder.AAC);
+      Log.i(TAG, "✓ Audio encoder set");
       
       // For high-quality AAC recording, set bitrate and sample rate
       if (formatChoice != 0) {
         mMediaRecorder.setAudioEncodingBitRate(128000);
         mMediaRecorder.setAudioSamplingRate(44100);
+        Log.i(TAG, "✓ High quality settings applied (AAC 128kbps, 44.1kHz)");
       }
+      Log.i(TAG, "==========================================");
     } catch (IllegalStateException e) {
-      Log.e(TAG, "✗ Error initializing media recorder", e);
+      Log.e(TAG, "==========================================");
+      Log.e(TAG, "✗ MEDIARECORDER CONFIGURATION FAILED");
+      Log.e(TAG, "Error: " + e.getMessage(), e);
+      Log.e(TAG, "==========================================");
       mMediaRecorder.release();
       mMediaRecorder = null;
       return false;

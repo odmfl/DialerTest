@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utility for detecting root access and executing root commands.
@@ -77,7 +78,7 @@ public class RootUtil {
         try {
             process = Runtime.getRuntime().exec("su");
             // Wait up to 3 seconds for the process to complete
-            boolean finished = process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+            boolean finished = process.waitFor(3, TimeUnit.SECONDS);
             if (!finished) {
                 Log.w(TAG, "su process timed out");
                 return false;
@@ -123,7 +124,7 @@ public class RootUtil {
             os.flush();
             
             // Wait up to 10 seconds for the command to complete
-            boolean finished = process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+            boolean finished = process.waitFor(10, TimeUnit.SECONDS);
             if (!finished) {
                 Log.e(TAG, "Command execution timed out");
                 Log.i(TAG, "==========================================");

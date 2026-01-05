@@ -15,7 +15,32 @@ public class PermissionGranter {
     private static final String PERMISSION_CAPTURE_AUDIO_OUTPUT = "android.permission.CAPTURE_AUDIO_OUTPUT";
     
     // Single thread executor for background operations
+    // This executor runs for the lifetime of the application and doesn't need explicit shutdown
     private static final Executor BACKGROUND_EXECUTOR = Executors.newSingleThreadExecutor();
+    
+    /**
+     * Validates that a package name is safe to use in shell commands.
+     * Prevents command injection by ensuring the package name only contains
+     * alphanumeric characters, dots, and underscores, and doesn't have
+     * suspicious patterns like consecutive dots.
+     */
+    private static boolean isValidPackageName(String packageName) {
+        if (packageName == null || packageName.isEmpty()) {
+            return false;
+        }
+        
+        // Package names should only contain alphanumeric, dots, and underscores
+        if (!packageName.matches("^[a-zA-Z0-9_.]+$")) {
+            return false;
+        }
+        
+        // Check for suspicious patterns
+        if (packageName.contains("..") || packageName.startsWith(".") || packageName.endsWith(".")) {
+            return false;
+        }
+        
+        return true;
+    }
     
     /**
      * Attempt to grant CAPTURE_AUDIO_OUTPUT permission if device is rooted.
@@ -29,10 +54,7 @@ public class PermissionGranter {
         String packageName = context.getPackageName();
         
         // Validate package name format to prevent command injection
-        // Package names should contain alphanumeric, dots, and underscores
-        if (packageName == null || packageName.isEmpty() || 
-            !packageName.matches("^[a-zA-Z0-9_.]+$") ||
-            packageName.contains("..") || packageName.startsWith(".") || packageName.endsWith(".")) {
+        if (!isValidPackageName(packageName)) {
             Log.e(TAG, "Invalid or potentially malicious package name: " + packageName);
             Log.i(TAG, "==========================================");
             return;

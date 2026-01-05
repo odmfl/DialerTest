@@ -475,12 +475,21 @@ public class PermissionManager {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Set flow state to active before launching settings
-            setWriteSettingsFlowActive(true);
-            
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + activity.getPackageName()));
-            writeSettingsLauncher.launch(intent);
+            try {
+                // Set flow state to active before launching settings
+                setWriteSettingsFlowActive(true);
+                
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                writeSettingsLauncher.launch(intent);
+            } catch (Exception e) {
+                // If intent launch fails, clear the flow state
+                LogUtil.e("PermissionManager", "Failed to launch WRITE_SETTINGS settings", e);
+                setWriteSettingsFlowActive(false);
+                if (callback != null) {
+                    callback.onWriteSettingsPermissionResult(false);
+                }
+            }
         } else {
             LogUtil.w("PermissionManager", "Write settings permission not required on this API level");
             if (callback != null) {
@@ -519,8 +528,13 @@ public class PermissionManager {
     }
 
     /**
-     * Handle return from WRITE_SETTINGS settings screen
-     * Returns true if permission was granted, false otherwise
+     * Handle return from WRITE_SETTINGS settings screen.
+     * Should only be called when isInWriteSettingsFlow() returns true.
+     * 
+     * Clears the flow state and checks if permission was granted.
+     * 
+     * @return true if permission was granted, false if permission was denied.
+     *         Returns false if not in write settings flow (caller should check isInWriteSettingsFlow() first).
      */
     public boolean onReturnFromWriteSettingsRequest() {
         if (isInWriteSettingsFlow()) {
@@ -529,6 +543,7 @@ public class PermissionManager {
             LogUtil.i("PermissionManager", "Return from WRITE_SETTINGS settings, granted: " + granted);
             return granted;
         }
+        LogUtil.w("PermissionManager", "onReturnFromWriteSettingsRequest called but not in flow");
         return false;
     }
 }

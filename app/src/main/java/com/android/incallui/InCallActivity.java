@@ -604,12 +604,12 @@ public class InCallActivity extends TransactionSafeFragmentActivity
                 }
             });
         
-        // Notify orientation listeners via InCallPresenter
-        InCallPresenter.getInstance().onDeviceOrientationChange(newConfig.orientation);
-        
         // Update UI for multiwindow mode if needed
+        // When in multiwindow mode and dialpad is not allowed, hide it
         if (isInMultiWindowMode() && !getResources().getBoolean(R.bool.incall_dialpad_allowed)) {
-            showDialpadFragment(false, false);
+            if (isDialpadVisible()) {
+                showDialpadFragment(false, false);
+            }
         }
         
         android.util.Log.i("InCallActivity", "Configuration change handled - activity NOT recreated");

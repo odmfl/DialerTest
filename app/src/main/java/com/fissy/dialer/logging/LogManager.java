@@ -134,13 +134,24 @@ public class LogManager {
             // Get logcat output for our app
             String packageName = context.getPackageName();
             
-            // Run logcat command
+            // Run logcat command - capture logs from ALL processes with relevant tags
+            // This is necessary because CallRecorderService runs in a separate process (com.android.incallui)
+            // as defined in AndroidManifest.xml. Using tag-based filtering instead of PID filtering
+            // ensures we capture logs from both the main process and the service process.
             Process process = Runtime.getRuntime().exec(new String[]{
                 "logcat",
                 "-d",  // Dump logs
                 "-v", "threadtime",  // Include timestamp and thread info
-                "--pid=" + android.os.Process.myPid(),  // Only our process
-                "*:V"  // All log levels
+                // Don't filter by PID - we need logs from multiple processes
+                "CallRecorder:V",           // CallRecorder class logs
+                "CallRecorderService:V",    // Service logs (separate process!)
+                "InCallFragment:V",         // UI logs
+                "InCallActivity:V",         // Activity logs
+                "Dialer:V",                 // General dialer logs
+                "InCallServiceImpl:V",      // InCallService logs
+                "MediaRecorder:V",          // MediaRecorder errors
+                "DialpadFragment:V",        // Dialpad logs
+                "*:S"                       // Silence everything else
             });
             
             BufferedReader bufferedReader = new BufferedReader(
@@ -151,19 +162,11 @@ public class LogManager {
             int lineCount = 0;
             int maxLines = 10000;  // Limit to prevent huge files
             
+            // Read all matching lines (tag filter already applied by logcat)
             while ((line = bufferedReader.readLine()) != null && lineCount < maxLines) {
-                // Filter for our relevant tags
-                if (line.contains("CallRecorder") || 
-                    line.contains("CallRecorderService") ||
-                    line.contains("InCallFragment") ||
-                    line.contains("DialpadFragment") ||
-                    line.contains("com.fissy.dialer") ||
-                    line.contains("InCallServiceImpl")) {
-                    
-                    writer.write(line);
-                    writer.newLine();
-                    lineCount++;
-                }
+                writer.write(line);
+                writer.newLine();
+                lineCount++;
             }
             
             bufferedReader.close();

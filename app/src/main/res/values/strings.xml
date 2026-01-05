@@ -1074,4 +1074,7 @@
     <string name="view_logs_title">View Live Logs</string>
     <string name="recording_diagnostics_summary">Check call recording setup and permissions</string>
     <string name="developer_options_title">Developer Options</string>
+    
+    <!-- Call Recording Permissions -->
+    <string name="call_recording_permission_denied">Call recording requires microphone permission</string>
 </resources>

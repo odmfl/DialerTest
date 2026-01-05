@@ -23,6 +23,8 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -111,7 +113,24 @@ public class InCallFragment extends Fragment
     private int voiceNetworkType;
     private int phoneType;
     private boolean stateRestored;
-    private static final int REQUEST_CODE_CALL_RECORD_PERMISSION = 1000;
+    
+    private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
+        new ActivityResultContracts.RequestMultiplePermissions(),
+        grantResults -> {
+            android.util.Log.i("InCallFragment", "==========================================");
+            android.util.Log.i("InCallFragment", "PERMISSION RESULT RECEIVED");
+            android.util.Log.i("InCallFragment", "Permissions: " + grantResults);
+            android.util.Log.i("InCallFragment", "==========================================");
+            
+            boolean allGranted = grantResults.values().stream().allMatch(x -> x);
+            if (allGranted) {
+                android.util.Log.i("InCallFragment", "✓ All permissions granted - starting recording");
+                inCallButtonUiDelegate.callRecordClicked(true);
+            } else {
+                android.util.Log.w("InCallFragment", "✗ Some permissions denied");
+                Toast.makeText(getContext(), R.string.call_recording_permission_denied, Toast.LENGTH_LONG).show();
+            }
+        });
 
     private static boolean isSupportedButton(@InCallButtonIds int id) {
         return id == InCallButtonIds.BUTTON_AUDIO
@@ -546,23 +565,12 @@ public class InCallFragment extends Fragment
 
     @Override
     public void requestCallRecordingPermissions(String[] permissions) {
-        requestPermissions(permissions, REQUEST_CODE_CALL_RECORD_PERMISSION);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CODE_CALL_RECORD_PERMISSION) {
-            boolean allGranted = grantResults.length > 0;
-            for (int i = 0; i < grantResults.length; i++) {
-                allGranted &= grantResults[i] == PackageManager.PERMISSION_GRANTED;
-            }
-            if (allGranted) {
-                inCallButtonUiDelegate.callRecordClicked(true);
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
+        android.util.Log.i("InCallFragment", "==========================================");
+        android.util.Log.i("InCallFragment", "REQUESTING PERMISSIONS");
+        android.util.Log.i("InCallFragment", "Permissions: " + java.util.Arrays.toString(permissions));
+        android.util.Log.i("InCallFragment", "==========================================");
+        
+        permissionLauncher.launch(permissions);
     }
 
     @Override

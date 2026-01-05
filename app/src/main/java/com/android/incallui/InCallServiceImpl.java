@@ -46,6 +46,7 @@ import com.fissy.dialer.feedback.FeedbackComponent;
 public class InCallServiceImpl extends InCallService {
 
     private static final String TAG = "InCallServiceImpl";
+    private static final long CALL_RECORDER_VERIFICATION_DELAY_MS = 2000L; // 2 seconds
     private ReturnToCallController returnToCallController;
     private CallList.Listener feedbackListener;
     // We only expect there to be one speakEasyCallManager to be instantiated at a time.
@@ -148,7 +149,7 @@ public class InCallServiceImpl extends InCallService {
             // Post a delayed verification to ensure service binding completes
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 verifyCallRecorderSetup();
-            }, 2000);
+            }, CALL_RECORDER_VERIFICATION_DELAY_MS);
         } catch (Exception e) {
             Log.e(TAG, "✗ ERROR setting up CallRecorder", e);
         }

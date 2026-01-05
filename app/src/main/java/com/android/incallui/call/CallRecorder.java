@@ -68,6 +68,7 @@ public class CallRecorder implements CallList.Listener {
   private PendingRecording pendingRecording = null;
   private int bindRetryCount = 0;
   private static final int MAX_RETRIES = 3;
+  private static final long RETRY_BASE_DELAY_MS = 2000L; // 2 seconds base delay
   private Handler retryHandler = new Handler(Looper.getMainLooper());
 
   private HashSet<RecordingProgressListener> progressListeners =
@@ -197,18 +198,22 @@ public class CallRecorder implements CallList.Listener {
   private void scheduleRetry() {
     if (bindRetryCount < MAX_RETRIES) {
       bindRetryCount++;
-      long delayMs = (long) Math.pow(2, bindRetryCount) * 1000;  // 2s, 4s, 8s
+      // Use bit shifting for exponential backoff: 2s, 4s, 8s
+      long delayMs = RETRY_BASE_DELAY_MS << (bindRetryCount - 1);
       
       Log.i(TAG, "⚠ Scheduling retry #" + bindRetryCount + " in " + delayMs + "ms");
       
-      retryHandler.postDelayed(() -> {
-        Log.i(TAG, "Retrying service bind...");
-        bindService();
+      retryHandler.postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          Log.i(TAG, "Retrying service bind...");
+          bindService();
+        }
       }, delayMs);
     } else {
       Log.e(TAG, "✗✗✗ Max retries reached, service binding failed ✗✗✗");
       if (context != null) {
-        Toast.makeText(context, "Recording service unavailable", Toast.LENGTH_LONG).show();
+        Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_LONG).show();
       }
     }
   }
@@ -255,7 +260,7 @@ public class CallRecorder implements CallList.Listener {
       if (initialized) {
         Log.i(TAG, "⚠ Service binding in progress, queueing recording request");
         pendingRecording = new PendingRecording(phoneNumber, creationTime);
-        Toast.makeText(context, "Connecting to recording service...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.call_recording_starting, Toast.LENGTH_SHORT).show();
         // Don't show toast here - wait for actual recording to start to avoid duplicate toasts
         return true;
       } else {

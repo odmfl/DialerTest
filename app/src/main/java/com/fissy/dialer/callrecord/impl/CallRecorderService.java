@@ -256,7 +256,6 @@ public class CallRecorderService extends Service {
     if (mMediaRecorder != null) {
       try {
         mMediaRecorder.stop();
-        mMediaRecorder.reset();
         mMediaRecorder.release();
       } catch (IllegalStateException e) {
         Log.e(TAG, "Exception closing media recorder", e);

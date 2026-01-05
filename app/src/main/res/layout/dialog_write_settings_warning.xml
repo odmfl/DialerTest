@@ -34,6 +34,27 @@
             android:text="@string/write_settings_dialog_explanation"
             android:textSize="14sp"
             android:textColor="?android:textColorSecondary"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/write_settings_manual_required"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/write_settings_manual_required"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="?android:colorPrimary"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/write_settings_instructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/write_settings_instructions"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:background="#F5F5F5"
+            android:padding="12dp"
             android:layout_marginBottom="24dp" />
 
         <Button

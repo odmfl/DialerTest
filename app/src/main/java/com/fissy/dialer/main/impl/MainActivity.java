@@ -46,7 +46,8 @@ public class MainActivity extends TransactionSafeActivity
         InteractionErrorListener,
         DisambigDialogDismissedListener,
         PermissionDialogFragment.PermissionDialogListener,
-        WriteSettingsWarningDialogFragment.WriteSettingsWarningListener {
+        WriteSettingsWarningDialogFragment.WriteSettingsWarningListener,
+        WriteSettingsRetryDialogFragment.WriteSettingsRetryListener {
 
     private MainActivityPeer activePeer;
     private PermissionManager permissionManager;
@@ -123,6 +124,9 @@ public class MainActivity extends TransactionSafeActivity
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(
                         showBlockReportSpamDialogReceiver, ShowBlockReportSpamDialogReceiver.getIntentFilter());
+        
+        // Check if returning from WRITE_SETTINGS permission request
+        checkWriteSettingsPermissionAfterReturn();
         
         // Check and request permissions on first resume
         if (!permissionsChecked) {
@@ -340,5 +344,86 @@ public class MainActivity extends TransactionSafeActivity
         WriteSettingsWarningDialogFragment dialog = WriteSettingsWarningDialogFragment.newInstance();
         dialog.setListener(this);
         dialog.show(getSupportFragmentManager(), "write_settings_warning");
+    }
+
+    /**
+     * Check WRITE_SETTINGS permission after returning from settings
+     */
+    private void checkWriteSettingsPermissionAfterReturn() {
+        if (permissionManager.isInWriteSettingsFlow()) {
+            boolean granted = permissionManager.onReturnFromWriteSettingsRequest();
+            
+            if (granted) {
+                showWriteSettingsSuccessMessage();
+            } else {
+                showWriteSettingsRetryDialog();
+            }
+        }
+    }
+
+    /**
+     * Show success message when WRITE_SETTINGS permission is granted
+     */
+    private void showWriteSettingsSuccessMessage() {
+        LogUtil.i("MainActivity", "WRITE_SETTINGS permission granted");
+        // Show toast message
+        android.widget.Toast.makeText(
+            this, 
+            R.string.write_settings_success, 
+            android.widget.Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    /**
+     * Show retry dialog when WRITE_SETTINGS permission is not granted
+     */
+    private void showWriteSettingsRetryDialog() {
+        LogUtil.i("MainActivity", "WRITE_SETTINGS permission not granted, showing retry dialog");
+        WriteSettingsRetryDialogFragment dialog = WriteSettingsRetryDialogFragment.newInstance();
+        dialog.setListener(this);
+        dialog.show(getSupportFragmentManager(), "write_settings_retry");
+    }
+
+    /**
+     * Handle WRITE_SETTINGS permission denied scenario
+     */
+    private void handleWriteSettingsPermissionDenied() {
+        LogUtil.i("MainActivity", "WRITE_SETTINGS permission denied");
+        // App continues without the permission
+        // User chose to skip, so we don't show any more dialogs
+    }
+
+    @Override
+    public void onWriteSettingsRetry() {
+        // User wants to retry granting WRITE_SETTINGS permission
+        LogUtil.i("MainActivity", "User wants to retry WRITE_SETTINGS permission");
+        permissionManager.requestWriteSettingsPermission(new PermissionManager.PermissionCallback() {
+            @Override
+            public void onPermissionsGranted(java.util.Map<String, Boolean> results) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onDefaultDialerRoleResult(boolean granted) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onFullScreenIntentPermissionResult(boolean granted) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onWriteSettingsPermissionResult(boolean granted) {
+                LogUtil.i("MainActivity", "Write settings permission retry result: " + granted);
+            }
+        });
+    }
+
+    @Override
+    public void onWriteSettingsSkip() {
+        // User chose to skip WRITE_SETTINGS permission
+        LogUtil.i("MainActivity", "User chose to skip WRITE_SETTINGS permission");
+        handleWriteSettingsPermissionDenied();
     }
 }

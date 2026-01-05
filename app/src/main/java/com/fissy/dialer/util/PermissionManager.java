@@ -54,6 +54,7 @@ public class PermissionManager {
     private static final String KEY_DIALER_ROLE_REQUESTED = "dialer_role_requested";
     private static final String KEY_FULL_SCREEN_INTENT_REQUESTED = "full_screen_intent_requested";
     private static final String KEY_WRITE_SETTINGS_REQUESTED = "write_settings_requested";
+    private static final String KEY_WRITE_SETTINGS_FLOW_ACTIVE = "write_settings_flow_active";
 
     // Required permissions for the app
     private static final String[] REQUIRED_PERMISSIONS = {
@@ -474,6 +475,9 @@ public class PermissionManager {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Set flow state to active before launching settings
+            setWriteSettingsFlowActive(true);
+            
             Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
             intent.setData(Uri.parse("package:" + activity.getPackageName()));
             writeSettingsLauncher.launch(intent);
@@ -497,5 +501,34 @@ public class PermissionManager {
      */
     private void markWriteSettingsRequested() {
         prefs.edit().putBoolean(KEY_WRITE_SETTINGS_REQUESTED, true).apply();
+    }
+
+    /**
+     * Check if currently in WRITE_SETTINGS permission request flow
+     */
+    public boolean isInWriteSettingsFlow() {
+        return prefs.getBoolean(KEY_WRITE_SETTINGS_FLOW_ACTIVE, false);
+    }
+
+    /**
+     * Set WRITE_SETTINGS flow state
+     */
+    public void setWriteSettingsFlowActive(boolean active) {
+        prefs.edit().putBoolean(KEY_WRITE_SETTINGS_FLOW_ACTIVE, active).apply();
+        LogUtil.i("PermissionManager", "WRITE_SETTINGS flow active: " + active);
+    }
+
+    /**
+     * Handle return from WRITE_SETTINGS settings screen
+     * Returns true if permission was granted, false otherwise
+     */
+    public boolean onReturnFromWriteSettingsRequest() {
+        if (isInWriteSettingsFlow()) {
+            setWriteSettingsFlowActive(false);
+            boolean granted = canWriteSettings();
+            LogUtil.i("PermissionManager", "Return from WRITE_SETTINGS settings, granted: " + granted);
+            return granted;
+        }
+        return false;
     }
 }

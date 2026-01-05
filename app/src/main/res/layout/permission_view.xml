@@ -33,5 +33,5 @@
         android:textAllCaps="true"
         android:textColor="?android:colorPrimary"
         android:textSize="@dimen/allow_permission_text_size"
-        android:theme="@style/Theme.AppCompat.Light" />
+        android:theme="@style/Theme.Material3.Light" />
 </LinearLayout>

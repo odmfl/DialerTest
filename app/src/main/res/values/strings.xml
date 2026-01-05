@@ -96,7 +96,7 @@
     <string name="all_contacts_empty_add_contact_action">Create new contact</string>
     <string name="allow">Allow</string>
     <string name="always_warn">Show warning every time</string>
-    <string name="appbar_scrolling_view_behavior">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
     <string name="applicationLabel">Phone</string>
     <string name="assisted_dialing_country_code_entry">Assisted dialing: Used country code +%1$s</string>
     <string name="assisted_dialing_country_code_entry_failure">Assisted dialing was used</string>
@@ -134,7 +134,7 @@
     <string name="blocked_numbers_disabled_emergency_header_label">Call blocking temporarily off</string>
     <string name="bottom_nav_count_99_plus">99+</string>
     <string name="bottom_nav_count_9_plus">9+</string>
-    <string name="bottom_sheet_behavior">android.support.design.widget.BottomSheetBehavior</string>
+    <string name="bottom_sheet_behavior">com.google.android.material.bottomsheet.BottomSheetBehavior</string>
     <string name="bubble_return_to_call">Back to call</string>
     <string name="build_version_key">build_version</string>
     <string name="build_version_label">Build version</string>
@@ -404,8 +404,8 @@
     <string name="eventLabelsGroup">Special date</string>
     <string name="event_activated">🐈🐕</string>
     <string name="event_deactivated">Pet mode off</string>
-    <string name="fab_transformation_scrim_behavior">android.support.design.transformation.FabTransformationScrimBehavior</string>
-    <string name="fab_transformation_sheet_behavior">android.support.design.transformation.FabTransformationSheetBehavior</string>
+    <string name="fab_transformation_scrim_behavior">com.google.android.material.transformation.FabTransformationScrimBehavior</string>
+    <string name="fab_transformation_sheet_behavior">com.google.android.material.transformation.FabTransformationSheetBehavior</string>
     <string name="favorites_header">Favorites</string>
     <string name="full_name">Name</string>
     <string name="gallery_item_description">image %1$tB %1$te %1$tY %1$tl %1$tM %1$tp</string>
@@ -419,7 +419,7 @@
     <string name="groupsLabel">Groups</string>
     <string name="handle_restricted">RESTRICTED</string>
     <string name="hex">HEX:</string>
-    <string name="hide_bottom_view_on_scroll_behavior">android.support.design.behavior.HideBottomViewOnScrollBehavior</string>
+    <string name="hide_bottom_view_on_scroll_behavior">com.google.android.material.behavior.HideBottomViewOnScrollBehavior</string>
     <string name="imLabelsGroup">IM</string>
     <string name="image_sent_messages">Photo sent via Messages</string>
     <string name="imei">IMEI</string>

@@ -39,7 +39,7 @@
 
         <Button
             android:id="@id/rtt_button_decline_request"
-            style="@style/Widget.AppCompat.Button"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
@@ -53,7 +53,7 @@
 
         <Button
             android:id="@id/rtt_button_accept_request"
-            style="@style/Widget.AppCompat.Button"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"

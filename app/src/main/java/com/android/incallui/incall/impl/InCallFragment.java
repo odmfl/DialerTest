@@ -712,6 +712,8 @@ public class InCallFragment extends Fragment
                 
                 try {
                     // Wrap entire block in try-catch in case getId() throws exception
+                    // Note: getResourceEntryName() is expensive but acceptable here since this
+                    // diagnostic logging only runs once during onViewCreated, not in hot paths
                     if (child.getId() != View.NO_ID) {
                         String idName = getResources().getResourceEntryName(child.getId());
                         logMessage.append(idName);

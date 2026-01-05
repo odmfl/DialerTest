@@ -213,6 +213,7 @@ public class InCallServiceImpl extends InCallService {
         Log.i(TAG, "IN-CALL SERVICE DESTROYED");
         Log.i(TAG, "==========================================");
         super.onDestroy();
+        Log.i(TAG, "onDestroy() completed");
     }
 
     private void tearDown() {

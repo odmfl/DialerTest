@@ -182,24 +182,25 @@ public class CallRecorderService extends Service {
     
     // Try multiple audio sources with fallback for non-rooted devices
     boolean audioSourceSet = false;
-    int audioSource = -1;
+    int audioSource = -1; // Track which audio source is being used
     
     // Try the preferred audio source first
+    int requestedSource = getAudioSource();
     try {
-      audioSource = getAudioSource();
       Log.i(TAG, "==========================================");
       Log.i(TAG, "SETTING AUDIO SOURCE");
-      Log.i(TAG, "Requested audio source: " + audioSource + " (4=VOICE_CALL, 6=VOICE_RECOGNITION, 1=MIC)");
+      Log.i(TAG, "Requested audio source: " + requestedSource + " (4=VOICE_CALL, 6=VOICE_RECOGNITION, 1=MIC)");
       Log.i(TAG, "==========================================");
       
-      mMediaRecorder.setAudioSource(audioSource);
+      mMediaRecorder.setAudioSource(requestedSource);
       audioSourceSet = true;
+      audioSource = requestedSource;
       
       Log.i(TAG, "✓ Successfully set audio source: " + audioSource);
     } catch (IllegalStateException e) {
       Log.e(TAG, "==========================================");
       Log.e(TAG, "✗ PRIMARY AUDIO SOURCE FAILED");
-      Log.e(TAG, "Failed audio source: " + audioSource);
+      Log.e(TAG, "Failed audio source: " + requestedSource);
       Log.e(TAG, "This may happen if:");
       Log.e(TAG, "  1. App is not the active InCallService");
       Log.e(TAG, "  2. CAPTURE_AUDIO_OUTPUT permission denied");
@@ -218,11 +219,12 @@ public class CallRecorderService extends Service {
       
       // Fallback 1: Try VOICE_RECOGNITION (most compatible for non-system apps)
       try {
-        audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
+        int fallbackSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
         Log.i(TAG, "Trying fallback: VOICE_RECOGNITION (6)");
         mMediaRecorder = new MediaRecorder();
-        mMediaRecorder.setAudioSource(audioSource);
+        mMediaRecorder.setAudioSource(fallbackSource);
         audioSourceSet = true;
+        audioSource = fallbackSource;
         Log.i(TAG, "✓ Fallback VOICE_RECOGNITION successful (may only record microphone)");
       } catch (IllegalStateException e2) {
         Log.e(TAG, "✗ VOICE_RECOGNITION also failed, trying MIC as last resort", e2);
@@ -236,11 +238,12 @@ public class CallRecorderService extends Service {
         
         // Fallback 2: Try MIC (works on all devices)
         try {
-          audioSource = MediaRecorder.AudioSource.MIC;
+          int lastResortSource = MediaRecorder.AudioSource.MIC;
           Log.i(TAG, "Trying last resort: MIC (1)");
           mMediaRecorder = new MediaRecorder();
-          mMediaRecorder.setAudioSource(audioSource);
+          mMediaRecorder.setAudioSource(lastResortSource);
           audioSourceSet = true;
+          audioSource = lastResortSource;
           Log.i(TAG, "✓ Fallback MIC successful (may only record microphone)");
         } catch (IllegalStateException e3) {
           Log.e(TAG, "==========================================");
@@ -249,6 +252,7 @@ public class CallRecorderService extends Service {
           Log.e(TAG, "Device may not support call recording");
           Log.e(TAG, "Final error: " + e3.getMessage(), e3);
           Log.e(TAG, "==========================================");
+          audioSource = -1; // Mark as failed
         }
       }
     }
@@ -312,18 +316,40 @@ public class CallRecorderService extends Service {
       mCurrentRecording = new CallRecording(phoneNumber, creationTime,
               fileName, System.currentTimeMillis(), mediaId);
       Log.i(TAG, "✓✓✓ RECORDING STARTED SUCCESSFULLY ✓✓✓");
-      Log.i(TAG, "Recording info: " + mCurrentRecording.toString());
+      Log.i(TAG, "Audio source used: " + audioSource);
       return true;
     } catch (IOException | IllegalStateException e) {
       Log.e(TAG, "✗ Could not start recording", e);
       getContentResolver().delete(uri, null, null);
     } catch (RuntimeException e) {
-      getContentResolver().delete(uri, null, null);
-      // only catch exceptions thrown by the MediaRecorder JNI code
       String message = e.getMessage();
-      if (message != null && message.contains("start failed")) {
-        Log.e(TAG, "✗ Could not start recording", e);
-      } else {
+      boolean isStartFailure = message != null && message.contains("start failed");
+      
+      if (isStartFailure) {
+        Log.e(TAG, "==========================================");
+        Log.e(TAG, "✗ MEDIARECORDER START FAILED");
+        Log.e(TAG, "Failed with audio source: " + audioSource);
+        Log.e(TAG, "Error: " + message);
+        
+        // Check if this was VOICE_CALL and we should try fallback
+        if (audioSource == MediaRecorder.AudioSource.VOICE_CALL) {
+          Log.w(TAG, "VOICE_CALL failed (likely permission denied)");
+          Log.w(TAG, "Attempting fallback to VOICE_RECOGNITION...");
+          Log.e(TAG, "==========================================");
+          
+          getContentResolver().delete(uri, null, null);
+          mMediaRecorder.release();
+          mMediaRecorder = null;
+          
+          // Retry with fallback audio source
+          return startRecordingWithFallback(phoneNumber, creationTime);
+        }
+        
+        Log.e(TAG, "==========================================", e);
+      }
+      
+      getContentResolver().delete(uri, null, null);
+      if (!isStartFailure) {
         throw e;
       }
     }
@@ -332,6 +358,100 @@ public class CallRecorderService extends Service {
     mMediaRecorder = null;
 
     return false;
+  }
+
+  /**
+   * Retry recording with fallback audio sources when VOICE_CALL fails.
+   * Tries VOICE_RECOGNITION, then MIC as last resort.
+   */
+  private synchronized boolean startRecordingWithFallback(String phoneNumber, long creationTime) {
+    Log.i(TAG, "==========================================");
+    Log.i(TAG, "STARTING FALLBACK RECORDING");
+    Log.i(TAG, "==========================================");
+    
+    // Try VOICE_RECOGNITION first (works on most devices, mic only)
+    if (tryRecordingWithSource(MediaRecorder.AudioSource.VOICE_RECOGNITION, phoneNumber, creationTime)) {
+      Log.i(TAG, "✓ Fallback successful with VOICE_RECOGNITION");
+      Log.w(TAG, "⚠ Note: Recording may only capture microphone (your voice)");
+      return true;
+    }
+    
+    Log.w(TAG, "VOICE_RECOGNITION also failed, trying MIC as last resort...");
+    
+    // Last resort: MIC (should work on all devices)
+    if (tryRecordingWithSource(MediaRecorder.AudioSource.MIC, phoneNumber, creationTime)) {
+      Log.i(TAG, "✓ Fallback successful with MIC");
+      Log.w(TAG, "⚠ Note: Recording may only capture microphone (your voice)");
+      return true;
+    }
+    
+    Log.e(TAG, "==========================================");
+    Log.e(TAG, "✗✗✗ ALL AUDIO SOURCES FAILED ✗✗✗");
+    Log.e(TAG, "Tried: VOICE_CALL, VOICE_RECOGNITION, MIC");
+    Log.e(TAG, "Device may not support call recording");
+    Log.e(TAG, "==========================================");
+    return false;
+  }
+
+  /**
+   * Try recording with a specific audio source.
+   */
+  private boolean tryRecordingWithSource(int audioSource, String phoneNumber, long creationTime) {
+    Log.i(TAG, "Trying audio source: " + audioSource);
+    
+    MediaRecorder recorder = new MediaRecorder();
+    
+    try {
+      // Set audio source
+      recorder.setAudioSource(audioSource);
+      
+      // Configure format/encoder
+      int formatChoice = getAudioFormatChoice();
+      recorder.setOutputFormat(formatChoice == 0
+          ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
+      recorder.setAudioEncoder(formatChoice == 0
+          ? MediaRecorder.AudioEncoder.AMR_WB : MediaRecorder.AudioEncoder.AAC);
+      
+      if (formatChoice != 0) {
+        recorder.setAudioEncodingBitRate(128000);
+        recorder.setAudioSamplingRate(44100);
+      }
+      
+      // Generate filename and create media store entry
+      String fileName = generateFilename(phoneNumber);
+      Uri uri = getContentResolver().insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+              CallRecording.generateMediaInsertValues(fileName, creationTime));
+      
+      // Set output file
+      ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+      if (pfd == null) {
+        recorder.release();
+        return false;
+      }
+      recorder.setOutputFile(pfd.getFileDescriptor());
+      
+      // Prepare and start
+      recorder.prepare();
+      recorder.start();
+      
+      // Success! Save recorder and recording info
+      mMediaRecorder = recorder;
+      long mediaId = Long.parseLong(uri.getLastPathSegment());
+      mCurrentRecording = new CallRecording(phoneNumber, creationTime,
+              fileName, System.currentTimeMillis(), mediaId);
+      
+      Log.i(TAG, "✓ Successfully started with audio source: " + audioSource);
+      return true;
+      
+    } catch (Exception e) {
+      Log.w(TAG, "Audio source " + audioSource + " failed: " + e.getMessage());
+      try {
+        recorder.release();
+      } catch (Exception ex) {
+        // Ignore cleanup errors
+      }
+      return false;
+    }
   }
 
   private synchronized CallRecording stopRecordingInternal() {

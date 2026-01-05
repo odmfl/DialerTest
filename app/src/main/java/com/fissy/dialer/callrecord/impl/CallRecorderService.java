@@ -84,6 +84,10 @@ public class CallRecorderService extends Service {
   }
 
   private int getAudioSource() {
+    // For Android 10+ (API 29+), use VOICE_COMMUNICATION for better call recording
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+      return MediaRecorder.AudioSource.VOICE_COMMUNICATION;
+    }
     return getResources().getInteger(R.integer.call_recording_audio_source);
   }
 
@@ -131,6 +135,12 @@ public class CallRecorderService extends Service {
           ? MediaRecorder.OutputFormat.AMR_WB : MediaRecorder.OutputFormat.MPEG_4);
       mMediaRecorder.setAudioEncoder(formatChoice == 0
           ? MediaRecorder.AudioEncoder.AMR_WB : MediaRecorder.AudioEncoder.AAC);
+      
+      // For high-quality AAC recording, set bitrate and sample rate
+      if (formatChoice != 0) {
+        mMediaRecorder.setAudioEncodingBitRate(128000);
+        mMediaRecorder.setAudioSamplingRate(44100);
+      }
     } catch (IllegalStateException e) {
       Log.w(TAG, "Error initializing media recorder", e);
       mMediaRecorder.reset();

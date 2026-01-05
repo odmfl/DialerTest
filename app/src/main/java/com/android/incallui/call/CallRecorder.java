@@ -91,7 +91,8 @@ public class CallRecorder implements CallList.Listener {
       if (pendingRecording != null) {
         Log.d(TAG, "Processing pending recording request");
         PendingRecording pending = pendingRecording;
-        pendingRecording = null; // Clear before calling to avoid infinite recursion
+        // Clear before calling - the recursive call will now take the service != null path
+        pendingRecording = null;
         startRecording(pending.phoneNumber, pending.creationTime);
       }
     }
@@ -185,8 +186,7 @@ public class CallRecorder implements CallList.Listener {
       if (initialized) {
         Log.d(TAG, "Service binding in progress, queueing recording request");
         pendingRecording = new PendingRecording(phoneNumber, creationTime);
-        // Show a brief message - the actual "Record call" toast will show when recording starts
-        Toast.makeText(context, R.string.onscreenCallRecordText, Toast.LENGTH_SHORT).show();
+        // Don't show toast here - wait for actual recording to start to avoid duplicate toasts
         return true;
       } else {
         Log.e(TAG, "Service not initialized - cannot start recording");

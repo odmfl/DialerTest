@@ -581,7 +581,8 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         android.util.Log.i("InCallActivity", "==========================================");
         android.util.Log.i("InCallActivity", "CONFIGURATION CHANGED");
         String orientationStr = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE 
-            ? "LANDSCAPE" : "PORTRAIT";
+            ? "LANDSCAPE" 
+            : (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT ? "PORTRAIT" : "UNKNOWN");
         android.util.Log.i("InCallActivity", "New orientation: " + orientationStr);
         android.util.Log.i("InCallActivity", "Screen layout: " + newConfig.screenLayout);
         android.util.Log.i("InCallActivity", "KeyboardHidden: " + newConfig.keyboardHidden);

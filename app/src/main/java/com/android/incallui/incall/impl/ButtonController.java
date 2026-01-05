@@ -469,8 +469,8 @@ interface ButtonController {
             this.isAllowed = isAllowed;
             if (button != null) {
                 button.setVisibility(isAllowed ? View.VISIBLE : View.INVISIBLE);
-                LogUtil.i("CallRecordButtonController", "Button visibility set to: " + 
-                    (isAllowed ? "VISIBLE" : "INVISIBLE"));
+                String visibility = isAllowed ? "VISIBLE" : "INVISIBLE";
+                LogUtil.i("CallRecordButtonController", "Button visibility set to: " + visibility);
             }
         }
 

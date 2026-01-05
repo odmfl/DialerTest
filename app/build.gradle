@@ -2,7 +2,9 @@ apply plugin: 'com.android.application'
 
 android {
     
-    compileSdkVersion rootProject.ext.COMPILE_SDK_VERSION
+    compileSdk rootProject.ext.COMPILE_SDK_VERSION
+    buildToolsVersion "34.0.0"
+    
     defaultConfig {
         applicationId rootProject.ext.APPLICATION_ID
         minSdkVersion rootProject.ext.MIN_SDK_VERSION
@@ -17,6 +19,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    
+    namespace 'com.fissy.dialer'
+    
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/NOTICE', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE.txt']
@@ -42,7 +47,7 @@ dependencies {
     implementation 'io.grpc:grpc-stub:1.48.1'
     implementation 'io.grpc:grpc-okhttp:1.48.1'
     implementation 'javax.annotation:jsr250-api:1.0'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.legacy:legacy-support-v13:1.0.0'
     implementation 'com.google.auto:auto-common:0.6'
     implementation 'io.grpc:grpc-protobuf-lite:1.0.3'

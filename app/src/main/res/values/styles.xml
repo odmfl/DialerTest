@@ -22,7 +22,7 @@
     </style>
 
     <style name="MainActivityThemeBase.Dark" parent="@style/Dialer.Dark.ThemeBase.NoActionBar">
-        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
         <item name="actionModeStyle">@style/MainActionModeStyle</item>
         <item name="dialpad_style">@style/Dialpad.Themed</item>
     </style>
@@ -324,7 +324,7 @@
     </style>
 
     <style name="Dialer.ThemeBase.ActionBar" parent="@style/Dialer.ThemeBase">
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.Material3.Light</item>
         <item name="actionBarSize">@dimen/action_bar_height</item>
         <item name="actionBarStyle">@style/DialerActionBarBaseStyle</item>
         <item name="actionBarTheme">@style/DialerActionBarBaseTheme</item>
@@ -562,7 +562,7 @@
         <item name="android:stateListAnimator">@animator/disabled_alpha</item>
     </style>
 
-    <style name="Incall.Button.VideoCall" parent="@style/Widget.AppCompat.ImageButton">
+    <style name="Incall.Button.VideoCall" parent="@style/Widget.Material3.Button.IconButton">
         <item name="android:background">@drawable/videocall_video_button_background</item>
         <item name="android:padding">@dimen/videocall_button_padding</item>
         <item name="android:layout_width">@dimen/videocall_button_size</item>
@@ -577,7 +577,7 @@
         <item name="android:overScrollMode">always</item>
     </style>
 
-    <style name="MainActionModeStyle" parent="@style/Widget.AppCompat.ActionMode">
+    <style name="MainActionModeStyle" parent="@style/Widget.Material3.ActionMode">
         <item name="background">?android:colorPrimary</item>
         <item name="titleTextStyle">@style/ActionModeTitleTextStyle</item>
     </style>
@@ -589,7 +589,7 @@
     </style>
 
     <style name="MainActivityThemeBase" parent="@style/Dialer.ThemeBase.NoActionBar">
-        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
         <item name="actionModeStyle">@style/MainActionModeStyle</item>
         <item name="dialpad_style">@style/Dialpad.Themed</item>
     </style>
@@ -701,7 +701,7 @@
         <item name="android:paddingEnd">@dimen/call_log_action_horizontal_padding</item>
     </style>
 
-    <style name="Theme.AppCompat" parent="@style/Base.Theme.AppCompat" />
+    <style name="Theme.AppCompat" parent="@style/Theme.Material3.Light" />
 
     <style name="Theme.AppCompat.CallComposer" parent="@style/Dialer.ThemeBase.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -758,7 +758,7 @@
         <item name="android:windowAnimationStyle">@android:style/Animation</item>
     </style>
 
-    <style name="Theme.Incall.DialogHolder" parent="@style/Theme.AppCompat.Translucent">
+    <style name="Theme.Incall.DialogHolder" parent="@style/Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

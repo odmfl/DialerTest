@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.fissy.dialer"
-    android:compileSdkVersion="29"
-    android:compileSdkVersionCodename="10">
+    package="com.fissy.dialer">
 
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -186,7 +184,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:name="androidx.core.content.FileProvider.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
         <meta-data

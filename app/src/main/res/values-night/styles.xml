@@ -25,7 +25,7 @@
     </style>
 
     <style name="MainActivityThemeBase" parent="@style/Dialer.ThemeBase.NoActionBar">
-        <item name="actionBarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="actionBarTheme">@style/ThemeOverlay.Material3.Dark.ActionBar</item>
         <item name="actionModeStyle">@style/MainActionModeStyle</item>
         <item name="dialpad_style">@style/Dialpad.Themed</item>
     </style>
@@ -159,7 +159,7 @@
     </style>
 
     <style name="Dialer.ThemeBase.Dark.ActionBar" parent="@style/Dialer.ThemeBase">
-        <item name="actionBarPopupTheme">@style/ThemeOverlay.AppCompat</item>
+        <item name="actionBarPopupTheme">@style/ThemeOverlay.Material3.Dark</item>
         <item name="actionBarSize">@dimen/action_bar_height</item>
         <item name="actionBarStyle">@style/DialerActionBarBaseStyle</item>
         <item name="actionBarTheme">@style/DialerActionBarBaseTheme</item>

@@ -669,31 +669,53 @@ public class InCallFragment extends Fragment
      * Helper method to log all view IDs in the layout for diagnostic purposes
      */
     private void logAllViewIds(View view) {
-        android.util.Log.i("InCallFragment", "==========================================");
-        android.util.Log.i("InCallFragment", "ALL VIEWS IN LAYOUT:");
-        android.util.Log.i("InCallFragment", "==========================================");
+        logAllViewIds(view, 0);
+    }
+    
+    /**
+     * Helper method to log all view IDs in the layout for diagnostic purposes
+     * @param view The view to inspect
+     * @param depth Current recursion depth
+     */
+    private void logAllViewIds(View view, int depth) {
+        // Limit recursion depth to prevent stack overflow and excessive logging
+        final int MAX_DEPTH = 10;
+        
+        if (depth == 0) {
+            android.util.Log.i("InCallFragment", "==========================================");
+            android.util.Log.i("InCallFragment", "ALL VIEWS IN LAYOUT:");
+            android.util.Log.i("InCallFragment", "==========================================");
+        }
+        
+        if (depth >= MAX_DEPTH) {
+            android.util.Log.i("InCallFragment", "Max depth reached, stopping recursion");
+            return;
+        }
         
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
+            String indent = new String(new char[depth * 2]).replace("\0", " ");
             for (int i = 0; i < group.getChildCount(); i++) {
                 View child = group.getChildAt(i);
                 try {
                     if (child.getId() != View.NO_ID) {
                         String idName = getResources().getResourceEntryName(child.getId());
-                        android.util.Log.i("InCallFragment", "View #" + i + ": " + idName + " (" + child.getClass().getSimpleName() + ")");
+                        android.util.Log.i("InCallFragment", indent + "View #" + i + ": " + idName + " (" + child.getClass().getSimpleName() + ")");
                     } else {
-                        android.util.Log.i("InCallFragment", "View #" + i + ": NO_ID (" + child.getClass().getSimpleName() + ")");
+                        android.util.Log.i("InCallFragment", indent + "View #" + i + ": NO_ID (" + child.getClass().getSimpleName() + ")");
                     }
                 } catch (Exception e) {
-                    android.util.Log.i("InCallFragment", "View #" + i + ": NO_ID (" + child.getClass().getSimpleName() + ")");
+                    android.util.Log.i("InCallFragment", indent + "View #" + i + ": Error getting ID (" + child.getClass().getSimpleName() + "): " + e.getMessage());
                 }
                 
                 if (child instanceof ViewGroup) {
-                    logAllViewIds(child);  // Recursive
+                    logAllViewIds(child, depth + 1);  // Recursive with depth tracking
                 }
             }
         }
         
-        android.util.Log.i("InCallFragment", "==========================================");
+        if (depth == 0) {
+            android.util.Log.i("InCallFragment", "==========================================");
+        }
     }
 }

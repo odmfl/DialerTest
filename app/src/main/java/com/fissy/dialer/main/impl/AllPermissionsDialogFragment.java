@@ -33,6 +33,7 @@ import androidx.fragment.app.DialogFragment;
 import com.fissy.dialer.R;
 import com.fissy.dialer.util.PermissionManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +43,8 @@ public class AllPermissionsDialogFragment extends DialogFragment {
 
     public static final String TAG = "AllPermissionsDialogFragment";
 
+    private static final String ARG_PERMISSIONS = "permissions";
+    
     private AllPermissionsDialogListener listener;
 
     /**
@@ -59,8 +62,12 @@ public class AllPermissionsDialogFragment extends DialogFragment {
         void onPermissionsDialogDismissed();
     }
 
-    public static AllPermissionsDialogFragment newInstance() {
-        return new AllPermissionsDialogFragment();
+    public static AllPermissionsDialogFragment newInstance(List<String> permissions) {
+        AllPermissionsDialogFragment fragment = new AllPermissionsDialogFragment();
+        Bundle args = new Bundle();
+        args.putStringArrayList(ARG_PERMISSIONS, new ArrayList<>(permissions));
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -83,10 +90,10 @@ public class AllPermissionsDialogFragment extends DialogFragment {
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_all_permissions, null);
         
-        // Get permissions from PermissionManager
-        PermissionManager permissionManager = new PermissionManager(requireActivity());
-        permissionManager.initialize();
-        List<String> requiredPermissions = permissionManager.getRequiredPermissionsList();
+        // Get permissions from arguments
+        List<String> requiredPermissions = getArguments() != null 
+                ? getArguments().getStringArrayList(ARG_PERMISSIONS) 
+                : new ArrayList<>();
         
         // Populate the permissions container
         LinearLayout permissionsContainer = dialogView.findViewById(R.id.permissions_container);
@@ -119,12 +126,6 @@ public class AllPermissionsDialogFragment extends DialogFragment {
                 .setCancelable(false); // Prevent dismissing by tapping outside
         
         return builder.create();
-    }
-
-    @Override
-    public void onDismiss(@NonNull DialogInterface dialog) {
-        super.onDismiss(dialog);
-        // Only call dismiss listener if not already handled by buttons
     }
 
     @Override

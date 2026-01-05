@@ -33,6 +33,7 @@ import com.fissy.dialer.main.impl.bottomnav.BottomNavBar.TabIndex;
 import com.fissy.dialer.util.PermissionManager;
 import com.fissy.dialer.util.TransactionSafeActivity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -207,7 +208,8 @@ public class MainActivity extends TransactionSafeActivity
      * Show the all permissions dialog
      */
     private void showAllPermissionsDialog() {
-        AllPermissionsDialogFragment dialog = AllPermissionsDialogFragment.newInstance();
+        List<String> permissions = permissionManager.getRequiredPermissionsList();
+        AllPermissionsDialogFragment dialog = AllPermissionsDialogFragment.newInstance(permissions);
         dialog.show(getSupportFragmentManager(), AllPermissionsDialogFragment.TAG);
     }
 

@@ -73,11 +73,13 @@ public class CallRecorder implements CallList.Listener {
   private ServiceConnection connection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
+      Log.d(TAG, "Service connected");
       CallRecorder.this.service = ICallRecorderService.Stub.asInterface(service);
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
+      Log.d(TAG, "Service disconnected");
       CallRecorder.this.service = null;
     }
   };
@@ -117,37 +119,54 @@ public class CallRecorder implements CallList.Listener {
 
   private void initialize() {
     if (isEnabled() && !initialized) {
+      Log.d(TAG, "Initializing CallRecorder - binding to service");
       Intent serviceIntent = new Intent(context, CallRecorderService.class);
-      context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+      boolean bound = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+      Log.d(TAG, "Service binding initiated: " + bound);
       initialized = true;
+    } else {
+      Log.d(TAG, "Initialize called - enabled: " + isEnabled() + ", initialized: " + initialized);
     }
   }
 
   private void uninitialize() {
     if (initialized) {
+      Log.d(TAG, "Uninitializing CallRecorder - unbinding service");
       context.unbindService(connection);
       initialized = false;
     }
   }
 
   public boolean startRecording(final String phoneNumber, final long creationTime) {
+    Log.d(TAG, "startRecording called - phoneNumber: " + phoneNumber + ", time: " + creationTime);
+    Log.d(TAG, "Service state - initialized: " + initialized + ", service: " + (service != null));
+    
     if (service == null) {
+      Log.e(TAG, "Service is null - cannot start recording");
+      Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
+          .show();
       return false;
     }
 
     try {
+      Log.d(TAG, "Calling service.startRecording()");
       if (service.startRecording(phoneNumber, creationTime)) {
+        Log.d(TAG, "Recording started successfully");
         for (RecordingProgressListener l : progressListeners) {
           l.onStartRecording();
         }
         updateRecordingProgressTask.run();
+        Toast.makeText(context, R.string.onscreenCallRecordText, Toast.LENGTH_SHORT).show();
         return true;
       } else {
+        Log.e(TAG, "Service returned false for startRecording");
         Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
             .show();
       }
     } catch (RemoteException e) {
-      Log.w(TAG, "Failed to start recording " + phoneNumber + ", " + new Date(creationTime), e);
+      Log.e(TAG, "Failed to start recording " + phoneNumber + ", " + new Date(creationTime), e);
+      Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
+          .show();
     }
 
     return false;
@@ -180,10 +199,13 @@ public class CallRecorder implements CallList.Listener {
   }
 
   public void finishRecording() {
+    Log.d(TAG, "finishRecording called");
     if (service != null) {
       try {
+        Log.d(TAG, "Calling service.stopRecording()");
         final CallRecording recording = service.stopRecording();
         if (recording != null) {
+          Log.d(TAG, "Recording stopped successfully: " + recording.toString());
           if (!TextUtils.isEmpty(recording.phoneNumber)) {
             new Thread(() -> {
               CallRecordingDataStore dataStore = new CallRecordingDataStore();
@@ -199,10 +221,14 @@ public class CallRecorder implements CallList.Listener {
                 R.string.call_recording_file_location, recording.fileName);
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
           }
+        } else {
+          Log.w(TAG, "Recording was null after stop");
         }
       } catch (RemoteException e) {
-        Log.w(TAG, "Failed to stop recording", e);
+        Log.e(TAG, "Failed to stop recording", e);
       }
+    } else {
+      Log.w(TAG, "Service is null, cannot stop recording");
     }
 
     for (RecordingProgressListener l : progressListeners) {

@@ -21,6 +21,8 @@ import android.app.Notification;
 import android.bluetooth.BluetoothDevice;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.os.Looper;
 import androidx.annotation.MainThread;
 import androidx.annotation.VisibleForTesting;
@@ -185,7 +187,11 @@ public class TelecomAdapter implements InCallServiceListener {
     public void startForegroundNotification(int id, Notification notification) {
         Assert.isNotNull(
                 inCallService, "No inCallService available for starting foreground notification");
-        inCallService.startForeground(id, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            inCallService.startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL);
+        } else {
+            inCallService.startForeground(id, notification);
+        }
     }
 
     /**

@@ -74,6 +74,8 @@
     <uses-permission android:name="com.cequint.ecid.CALLER_ID_LOOKUP" />
     <uses-permission android:name="com.motorola.incallui.permission.INCOMING_CALL_VISIBILITY_CHANGED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <uses-feature
         android:name="android.hardware.camera.any"
@@ -155,13 +157,15 @@
         <service
             android:name="com.fissy.dialer.app.calllog.CallLogNotificationsService"
             android:directBootAware="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="phoneCall" />
         <service
             android:name="com.fissy.dialer.app.calllog.VoicemailNotificationJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <service
             android:name="com.fissy.dialer.callrecord.impl.CallRecorderService"
+            android:foregroundServiceType="phoneCall|microphone"
             android:process="com.android.incallui" />
 
         <receiver
@@ -431,7 +435,8 @@
         </service>
         <service
             android:name="com.fissy.dialer.simulator.service.SimulatorService"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="phoneCall" />
 
         <meta-data
             android:name="android.telephony.HIDE_VOICEMAIL_SETTINGS_MENU"
@@ -489,6 +494,7 @@
             android:name="com.android.incallui.InCallServiceImpl"
             android:directBootAware="true"
             android:exported="true"
+            android:foregroundServiceType="phoneCall"
             android:permission="android.permission.BIND_INCALL_SERVICE">
             <meta-data
                 android:name="android.telecom.IN_CALL_SERVICE_UI"

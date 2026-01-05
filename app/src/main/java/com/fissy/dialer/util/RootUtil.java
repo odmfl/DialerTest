@@ -47,9 +47,10 @@ public class RootUtil {
     // Method 2: Check for su command
     private static boolean checkRootMethod2() {
         Process process = null;
+        BufferedReader in = null;
         try {
             process = Runtime.getRuntime().exec(new String[] { "which", "su" });
-            BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = in.readLine();
             if (line != null) {
                 Log.d(TAG, "su command found at: " + line);
@@ -59,6 +60,11 @@ public class RootUtil {
         } catch (Exception e) {
             return false;
         } finally {
+            try {
+                if (in != null) in.close();
+            } catch (Exception e) {
+                // Ignore cleanup errors
+            }
             if (process != null) {
                 process.destroy();
             }

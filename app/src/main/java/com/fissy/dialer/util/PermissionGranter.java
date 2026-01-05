@@ -3,6 +3,7 @@ package com.fissy.dialer.util;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.util.Log;
+import androidx.core.content.ContextCompat;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -38,7 +39,7 @@ public class PermissionGranter {
         }
         
         // Check if permission is already granted
-        boolean isGranted = context.checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) 
+        boolean isGranted = ContextCompat.checkSelfPermission(context, PERMISSION_CAPTURE_AUDIO_OUTPUT) 
             == PackageManager.PERMISSION_GRANTED;
         
         Log.i(TAG, "Package: " + packageName);
@@ -77,7 +78,7 @@ public class PermissionGranter {
             Log.i(TAG, "Both sides of calls will be recorded");
             
             // Verify permission was actually granted (re-check after grant attempt)
-            boolean verifyGranted = context.checkSelfPermission(PERMISSION_CAPTURE_AUDIO_OUTPUT) 
+            boolean verifyGranted = ContextCompat.checkSelfPermission(context, PERMISSION_CAPTURE_AUDIO_OUTPUT) 
                 == PackageManager.PERMISSION_GRANTED;
             Log.i(TAG, "Verification: Permission granted = " + verifyGranted);
             

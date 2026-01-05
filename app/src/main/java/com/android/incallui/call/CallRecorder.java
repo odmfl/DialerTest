@@ -65,16 +65,34 @@ public class CallRecorder implements CallList.Listener {
   private Context context;
   private boolean initialized = false;
   private ICallRecorderService service = null;
+  private PendingRecording pendingRecording = null;
 
   private HashSet<RecordingProgressListener> progressListeners =
       new HashSet<RecordingProgressListener>();
   private Handler handler = new Handler();
+  
+  private static class PendingRecording {
+    String phoneNumber;
+    long creationTime;
+    
+    PendingRecording(String phoneNumber, long creationTime) {
+      this.phoneNumber = phoneNumber;
+      this.creationTime = creationTime;
+    }
+  }
 
   private ServiceConnection connection = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
       Log.d(TAG, "Service connected");
       CallRecorder.this.service = ICallRecorderService.Stub.asInterface(service);
+      
+      // If there's a pending recording request, start it now
+      if (pendingRecording != null) {
+        Log.d(TAG, "Processing pending recording request");
+        startRecording(pendingRecording.phoneNumber, pendingRecording.creationTime);
+        pendingRecording = null;
+      }
     }
 
     @Override
@@ -121,8 +139,22 @@ public class CallRecorder implements CallList.Listener {
     if (isEnabled() && !initialized) {
       Log.d(TAG, "Initializing CallRecorder - binding to service");
       Intent serviceIntent = new Intent(context, CallRecorderService.class);
+      
+      try {
+        // Try to start the service first to ensure it's running
+        context.startService(serviceIntent);
+        Log.d(TAG, "Service start initiated");
+      } catch (Exception e) {
+        Log.w(TAG, "Failed to start service", e);
+      }
+      
       boolean bound = context.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
       Log.d(TAG, "Service binding initiated: " + bound);
+      
+      if (!bound) {
+        Log.e(TAG, "Failed to bind to service");
+      }
+      
       initialized = true;
     } else {
       Log.d(TAG, "Initialize called - enabled: " + isEnabled() + ", initialized: " + initialized);
@@ -142,10 +174,20 @@ public class CallRecorder implements CallList.Listener {
     Log.d(TAG, "Service state - initialized: " + initialized + ", service: " + (service != null));
     
     if (service == null) {
-      Log.e(TAG, "Service is null - cannot start recording");
-      Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
-          .show();
-      return false;
+      Log.w(TAG, "Service is null - checking if we should queue or fail");
+      
+      // If we're initialized but service isn't bound yet, queue the request
+      if (initialized) {
+        Log.d(TAG, "Service binding in progress, queueing recording request");
+        pendingRecording = new PendingRecording(phoneNumber, creationTime);
+        Toast.makeText(context, "Starting recording...", Toast.LENGTH_SHORT).show();
+        return true;
+      } else {
+        Log.e(TAG, "Service not initialized - cannot start recording");
+        Toast.makeText(context, R.string.call_recording_failed_message, Toast.LENGTH_SHORT)
+            .show();
+        return false;
+      }
     }
 
     try {

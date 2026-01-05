@@ -54,6 +54,7 @@ public class PermissionManager {
     private static final String KEY_DIALER_ROLE_REQUESTED = "dialer_role_requested";
     private static final String KEY_FULL_SCREEN_INTENT_REQUESTED = "full_screen_intent_requested";
     private static final String KEY_WRITE_SETTINGS_REQUESTED = "write_settings_requested";
+    private static final String KEY_WRITE_SETTINGS_FLOW_ACTIVE = "write_settings_flow_active";
 
     // Required permissions for the app
     private static final String[] REQUIRED_PERMISSIONS = {
@@ -474,9 +475,21 @@ public class PermissionManager {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
-            intent.setData(Uri.parse("package:" + activity.getPackageName()));
-            writeSettingsLauncher.launch(intent);
+            try {
+                // Set flow state to active before launching settings
+                setWriteSettingsFlowActive(true);
+                
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + activity.getPackageName()));
+                writeSettingsLauncher.launch(intent);
+            } catch (Exception e) {
+                // If intent launch fails, clear the flow state
+                LogUtil.e("PermissionManager", "Failed to launch WRITE_SETTINGS settings", e);
+                setWriteSettingsFlowActive(false);
+                if (callback != null) {
+                    callback.onWriteSettingsPermissionResult(false);
+                }
+            }
         } else {
             LogUtil.w("PermissionManager", "Write settings permission not required on this API level");
             if (callback != null) {
@@ -497,5 +510,40 @@ public class PermissionManager {
      */
     private void markWriteSettingsRequested() {
         prefs.edit().putBoolean(KEY_WRITE_SETTINGS_REQUESTED, true).apply();
+    }
+
+    /**
+     * Check if currently in WRITE_SETTINGS permission request flow
+     */
+    public boolean isInWriteSettingsFlow() {
+        return prefs.getBoolean(KEY_WRITE_SETTINGS_FLOW_ACTIVE, false);
+    }
+
+    /**
+     * Set WRITE_SETTINGS flow state
+     */
+    public void setWriteSettingsFlowActive(boolean active) {
+        prefs.edit().putBoolean(KEY_WRITE_SETTINGS_FLOW_ACTIVE, active).apply();
+        LogUtil.i("PermissionManager", "WRITE_SETTINGS flow active: " + active);
+    }
+
+    /**
+     * Handle return from WRITE_SETTINGS settings screen.
+     * Should only be called when isInWriteSettingsFlow() returns true.
+     * 
+     * Clears the flow state and checks if permission was granted.
+     * 
+     * @return true if permission was granted, false if permission was denied.
+     *         Returns false if not in write settings flow (caller should check isInWriteSettingsFlow() first).
+     */
+    public boolean onReturnFromWriteSettingsRequest() {
+        if (isInWriteSettingsFlow()) {
+            setWriteSettingsFlowActive(false);
+            boolean granted = canWriteSettings();
+            LogUtil.i("PermissionManager", "Return from WRITE_SETTINGS settings, granted: " + granted);
+            return granted;
+        }
+        LogUtil.w("PermissionManager", "onReturnFromWriteSettingsRequest called but not in flow");
+        return false;
     }
 }

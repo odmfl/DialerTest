@@ -260,18 +260,13 @@ public class InCallFragment extends Fragment
         android.util.Log.i("InCallFragment", "Inspecting layout for diagnostic purposes...");
         logAllViewIds(view);
         
-        // Try to find the record button
-        android.util.Log.i("InCallFragment", "Looking for callRecordButton...");
-        View recordButton = view.findViewById(R.id.callRecordButton);
-        if (recordButton != null) {
-            android.util.Log.i("InCallFragment", "✓ callRecordButton found!");
-            android.util.Log.i("InCallFragment", "Button class: " + recordButton.getClass().getName());
-            android.util.Log.i("InCallFragment", "Button enabled: " + recordButton.isEnabled());
-            android.util.Log.i("InCallFragment", "Button visible: " + (recordButton.getVisibility() == View.VISIBLE));
-        } else {
-            android.util.Log.e("InCallFragment", "✗✗✗ RECORD BUTTON NOT FOUND IN LAYOUT ✗✗✗");
-            android.util.Log.e("InCallFragment", "The button with ID 'callRecordButton' does not exist");
-        }
+        // Note: Call record button is dynamically assigned to one of incall_*_button slots
+        // It's not a fixed ID like 'callRecordButton' but managed through ButtonController
+        android.util.Log.i("InCallFragment", "==========================================");
+        android.util.Log.i("InCallFragment", "BUTTON CONTROLLER STATUS");
+        android.util.Log.i("InCallFragment", "CallRecordButtonController added: " + (getButtonController(InCallButtonIds.BUTTON_RECORD_CALL) != null ? "✓" : "✗"));
+        android.util.Log.i("InCallFragment", "Note: Record button is dynamically assigned to incall_*_button slots");
+        android.util.Log.i("InCallFragment", "==========================================");
         
         android.util.Log.i("InCallFragment", "onViewCreated() completed");
         android.util.Log.i("InCallFragment", "==========================================");
@@ -694,10 +689,17 @@ public class InCallFragment extends Fragment
         
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            String indent = new String(new char[depth * 2]).replace("\0", " ");
+            // Create indentation more efficiently using StringBuilder
+            StringBuilder indentBuilder = new StringBuilder();
+            for (int j = 0; j < depth * 2; j++) {
+                indentBuilder.append(" ");
+            }
+            String indent = indentBuilder.toString();
+            
             for (int i = 0; i < group.getChildCount(); i++) {
                 View child = group.getChildAt(i);
                 try {
+                    // Wrap entire block in try-catch in case getId() throws exception
                     if (child.getId() != View.NO_ID) {
                         String idName = getResources().getResourceEntryName(child.getId());
                         android.util.Log.i("InCallFragment", indent + "View #" + i + ": " + idName + " (" + child.getClass().getSimpleName() + ")");

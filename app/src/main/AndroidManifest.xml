@@ -476,6 +476,15 @@
             android:exported="true"
             android:label="@string/voicemail_change_greeting_preference_title"
             android:parentActivityName="com.fissy.dialer.app.settings.DialerSettingsActivity" />
+        <!-- InCallActivity handles configuration changes in code to prevent activity recreation
+             during active calls, which was causing rapid onPause/onResume cycling.
+             configChanges covers all common config changes to keep activity alive:
+             - orientation/screenSize/screenLayout: Device rotation and screen changes
+             - keyboardHidden/keyboard: Soft keyboard show/hide
+             - navigation: Navigation bar changes
+             - uiMode: Day/night mode, car mode changes
+             - density/fontScale: Display density and font size changes
+             - layoutDirection: RTL/LTR layout changes -->
         <activity
             android:name="com.android.incallui.InCallActivity"
             android:directBootAware="true"
@@ -488,7 +497,8 @@
             android:screenOrientation="nosensor"
             android:taskAffinity="com.android.incallui"
             android:theme="@style/Theme.InCallScreen"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|fontScale|layoutDirection" />
         <activity
             android:name="com.android.incallui.ManageConferenceActivity"
             android:directBootAware="true"

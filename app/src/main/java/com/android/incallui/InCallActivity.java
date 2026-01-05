@@ -233,7 +233,8 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     @Override
     protected void onCreate(Bundle bundle) {
         android.util.Log.i("InCallActivity", "==========================================");
-        android.util.Log.i("InCallActivity", "IN-CALL ACTIVITY CREATED");
+        android.util.Log.i("InCallActivity", "ONCREATE - " + (bundle != null ? "RECREATING" : "FIRST CREATE"));
+        android.util.Log.i("InCallActivity", "Saved state: " + (bundle != null));
         android.util.Log.i("InCallActivity", "Intent: " + (getIntent() != null ? getIntent().getAction() : "null"));
         android.util.Log.i("InCallActivity", "==========================================");
         Trace.beginSection("InCallActivity.onCreate");
@@ -257,30 +258,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         setContentView(R.layout.incall_screen);
         internalResolveIntent(getIntent());
 
-        boolean isLandscape =
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        boolean isRtl = ViewUtil.isRtl();
-        if (isLandscape) {
-            dialpadSlideInAnimation =
-                    AnimationUtils.loadAnimation(
-                            this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
-            dialpadSlideOutAnimation =
-                    AnimationUtils.loadAnimation(
-                            this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
-        } else {
-            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
-            dialpadSlideOutAnimation =
-                    AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
-        }
-        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
-        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
-        dialpadSlideOutAnimation.setAnimationListener(
-                new AnimationListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animation animation) {
-                        hideDialpadFragment();
-                    }
-                });
+        setupDialpadAnimations();
 
         if (bundle != null && showDialpadRequest == DIALPAD_REQUEST_NONE) {
             // If the dialpad was shown before, set related variables so that it can be shown and
@@ -319,6 +297,37 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         MetricsComponent.get(this)
                 .metrics()
                 .stopTimer(Metrics.ON_CALL_ADDED_TO_ON_INCALL_UI_SHOWN_OUTGOING);
+    }
+
+    /**
+     * Loads dialpad slide animations based on current orientation and RTL settings.
+     */
+    private void setupDialpadAnimations() {
+        boolean isLandscape =
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        boolean isRtl = ViewUtil.isRtl();
+        
+        if (isLandscape) {
+            dialpadSlideInAnimation =
+                    AnimationUtils.loadAnimation(
+                            this, isRtl ? R.anim.dialpad_slide_in_left : R.anim.dialpad_slide_in_right);
+            dialpadSlideOutAnimation =
+                    AnimationUtils.loadAnimation(
+                            this, isRtl ? R.anim.dialpad_slide_out_left : R.anim.dialpad_slide_out_right);
+        } else {
+            dialpadSlideInAnimation = AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_in_bottom);
+            dialpadSlideOutAnimation =
+                    AnimationUtils.loadAnimation(this, R.anim.dialpad_slide_out_bottom);
+        }
+        dialpadSlideInAnimation.setInterpolator(AnimUtils.EASE_IN);
+        dialpadSlideOutAnimation.setInterpolator(AnimUtils.EASE_OUT);
+        dialpadSlideOutAnimation.setAnimationListener(
+                new AnimationListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        hideDialpadFragment();
+                    }
+                });
     }
 
     private void setWindowFlags() {
@@ -504,7 +513,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onResume() {
-        android.util.Log.i("InCallActivity", "onResume() called");
+        android.util.Log.i("InCallActivity", "ONRESUME - Activity instance: " + System.identityHashCode(this));
         Trace.beginSection("InCallActivity.onResume");
         super.onResume();
 
@@ -554,6 +563,7 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
     @Override
     protected void onPause() {
+        android.util.Log.i("InCallActivity", "ONPAUSE - Activity instance: " + System.identityHashCode(this));
         Trace.beginSection("InCallActivity.onPause");
         super.onPause();
 
@@ -564,6 +574,49 @@ public class InCallActivity extends TransactionSafeFragmentActivity
 
         InCallPresenter.getInstance().getPseudoScreenState().removeListener(this);
         Trace.endSection();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        android.util.Log.i("InCallActivity", "==========================================");
+        android.util.Log.i("InCallActivity", "CONFIGURATION CHANGED");
+        android.util.Log.i("InCallActivity", "New orientation: " + getOrientationString(newConfig.orientation));
+        android.util.Log.i("InCallActivity", "Screen layout: " + newConfig.screenLayout);
+        android.util.Log.i("InCallActivity", "KeyboardHidden: " + newConfig.keyboardHidden);
+        android.util.Log.i("InCallActivity", "==========================================");
+        
+        super.onConfigurationChanged(newConfig);
+        
+        // Reload dialpad animations for new orientation
+        setupDialpadAnimations();
+        
+        // Update UI for multiwindow mode if needed
+        // In multiwindow mode, the dialpad may not fit properly alongside other windows.
+        // When the dialpad is not allowed in multiwindow mode (per resource config),
+        // we proactively hide it to avoid UI layout issues.
+        if (isInMultiWindowMode() 
+                && !getResources().getBoolean(R.bool.incall_dialpad_allowed) 
+                && isDialpadVisible()) {
+            showDialpadFragment(false, false);
+        }
+        
+        android.util.Log.i("InCallActivity", "Configuration change handled - activity NOT recreated");
+    }
+
+    /**
+     * Converts Configuration orientation constant to human-readable string for logging.
+     */
+    private String getOrientationString(int orientation) {
+        switch (orientation) {
+            case Configuration.ORIENTATION_LANDSCAPE:
+                return "LANDSCAPE";
+            case Configuration.ORIENTATION_PORTRAIT:
+                return "PORTRAIT";
+            case Configuration.ORIENTATION_UNDEFINED:
+                return "UNDEFINED";
+            default:
+                return "UNKNOWN(" + orientation + ")";
+        }
     }
 
     @Override

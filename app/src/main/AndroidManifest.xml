@@ -85,7 +85,6 @@
 
     <application
         android:name="com.fissy.dialer.binary.aosp.AospDialerApplication"
-        android:extractNativeLibs="false"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/applicationLabel"
@@ -97,6 +96,7 @@
 
         <activity
             android:name="com.android.contacts.common.dialog.CallSubjectDialog"
+            android:exported="false"
             android:theme="@style/Theme.CallSubjectDialogTheme"
             android:windowSoftInputMode="adjustResize|stateVisible">
             <intent-filter>
@@ -129,7 +129,9 @@
             android:label="@string/call_log_activity_title"
             android:theme="@style/DialtactsTheme" />
 
-        <receiver android:name="com.fissy.dialer.app.calllog.CallLogReceiver">
+        <receiver 
+            android:name="com.fissy.dialer.app.calllog.CallLogReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.NEW_VOICEMAIL" />
 
@@ -164,14 +166,16 @@
 
         <receiver
             android:name="com.fissy.dialer.app.calllog.MissedCallNotificationReceiver"
-            android:directBootAware="true">
+            android:directBootAware="true"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.telecom.action.SHOW_MISSED_CALLS_NOTIFICATION" />
             </intent-filter>
         </receiver>
         <receiver
             android:name="com.fissy.dialer.app.voicemail.LegacyVoicemailNotificationReceiver"
-            android:directBootAware="true">
+            android:directBootAware="true"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.telephony.action.SHOW_VOICEMAIL_NOTIFICATION" />
             </intent-filter>
@@ -189,7 +193,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:name="androidx.core.content.FileProvider.PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
         <meta-data
@@ -210,6 +214,7 @@
         </activity>
         <activity
             android:name="com.fissy.dialer.assisteddialing.ui.AssistedDialingSettingActivity"
+            android:exported="false"
             android:label="@string/assisted_dialing_setting_title"
             android:parentActivityName="com.fissy.dialer.app.settings.DialerSettingsActivity"
             android:theme="@style/SettingsStyle">
@@ -256,7 +261,9 @@
             android:name="com.fissy.dialer.interactions.ContactUpdateService"
             android:exported="false" />
 
-        <receiver android:name="com.fissy.dialer.interactions.UndemoteOutgoingCallReceiver">
+        <receiver 
+            android:name="com.fissy.dialer.interactions.UndemoteOutgoingCallReceiver"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
@@ -518,7 +525,9 @@
         <receiver
             android:name="com.android.incallui.ReturnToCallActionReceiver"
             android:exported="false" />
-        <receiver android:name="com.android.incallui.answer.impl.hint.PawSecretCodeListener">
+        <receiver 
+            android:name="com.android.incallui.answer.impl.hint.PawSecretCodeListener"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <data android:scheme="android_secret_code" />

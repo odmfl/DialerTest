@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="export_logs"
+        android:title="@string/export_logs_title"
+        android:summary="@string/export_logs_summary"
+        android:icon="@drawable/quantum_ic_bug_report_vd_theme_24" />
+    
+    <Preference
+        android:key="recording_diagnostics"
+        android:title="@string/recording_diagnostics_title"
+        android:summary="@string/recording_diagnostics_summary"
+        android:icon="@drawable/quantum_ic_settings_vd_theme_24" />
+
+</PreferenceScreen>

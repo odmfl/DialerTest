@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.XmlResourceParser;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -55,10 +56,16 @@ import java.util.Locale;
 public class CallRecorder implements CallList.Listener {
   public static final String TAG = "CallRecorder";
 
-  public static final String[] REQUIRED_PERMISSIONS = new String[] {
-    android.Manifest.permission.RECORD_AUDIO,
-    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-  };
+  public static final String[] REQUIRED_PERMISSIONS = 
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU 
+        ? new String[] {
+            android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.READ_MEDIA_AUDIO
+          }
+        : new String[] {
+            android.Manifest.permission.RECORD_AUDIO,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+          };
   private static final HashMap<String, Boolean> RECORD_ALLOWED_STATE_BY_COUNTRY = new HashMap<>();
 
   private static CallRecorder instance = null;

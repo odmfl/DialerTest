@@ -60,7 +60,11 @@ public class CallRecorderService extends Service {
 
     @Override
     public boolean startRecording(String phoneNumber, long creationTime) throws RemoteException {
-      Log.d(TAG, "AIDL startRecording called - phoneNumber: " + phoneNumber + ", time: " + creationTime);
+      // Mask phone number for privacy - only show last 4 digits
+      String maskedNumber = phoneNumber != null && phoneNumber.length() > 4
+          ? "***" + phoneNumber.substring(phoneNumber.length() - 4)
+          : "****";
+      Log.d(TAG, "AIDL startRecording called - phoneNumber: " + maskedNumber + ", time: " + creationTime);
       return startRecordingInternal(phoneNumber, creationTime);
     }
 
@@ -73,7 +77,7 @@ public class CallRecorderService extends Service {
 
     @Override
     public CallRecording getActiveRecording() throws RemoteException {
-      Log.d(TAG, "AIDL getActiveRecording called - result: " + (mCurrentRecording != null ? mCurrentRecording.toString() : "null"));
+      Log.d(TAG, "AIDL getActiveRecording called - result: " + (mCurrentRecording != null ? "recording active" : "null"));
       return mCurrentRecording;
     }
   };
@@ -127,7 +131,11 @@ public class CallRecorderService extends Service {
   }
 
   private synchronized boolean startRecordingInternal(String phoneNumber, long creationTime) {
-    Log.d(TAG, "startRecordingInternal called - phoneNumber: " + phoneNumber + ", creationTime: " + creationTime);
+    // Mask phone number for privacy - only show last 4 digits
+    String maskedNumber = phoneNumber != null && phoneNumber.length() > 4
+        ? "***" + phoneNumber.substring(phoneNumber.length() - 4)
+        : "****";
+    Log.d(TAG, "startRecordingInternal called - phoneNumber: " + maskedNumber + ", creationTime: " + creationTime);
     
     if (mMediaRecorder != null) {
       Log.w(TAG, "Start called with recording in progress, stopping current recording");

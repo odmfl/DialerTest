@@ -383,7 +383,11 @@ public class CallButtonPresenter
             CallRecorder recorder = CallRecorder.getInstance();
             String number = call != null ? call.getNumber() : "unknown";
             long time = call != null ? call.getCreationTimeMillis() : System.currentTimeMillis();
-            LogUtil.d("CallButtonPresenter", "Starting recording for: " + number);
+            // Mask phone number for privacy - only show last 4 digits
+            String maskedNumber = number != null && number.length() > 4 
+                ? "***" + number.substring(number.length() - 4) 
+                : "****";
+            LogUtil.d("CallButtonPresenter", "Starting recording for: " + maskedNumber);
             boolean started = recorder.startRecording(number, time);
             LogUtil.d("CallButtonPresenter", "Recording start result: " + started);
         } else {

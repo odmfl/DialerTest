@@ -171,7 +171,11 @@ public class CallRecorder implements CallList.Listener {
   }
 
   public boolean startRecording(final String phoneNumber, final long creationTime) {
-    Log.d(TAG, "startRecording called - phoneNumber: " + phoneNumber + ", time: " + creationTime);
+    // Mask phone number for privacy - only show last 4 digits
+    String maskedNumber = phoneNumber != null && phoneNumber.length() > 4 
+        ? "***" + phoneNumber.substring(phoneNumber.length() - 4) 
+        : "****";
+    Log.d(TAG, "startRecording called - phoneNumber: " + maskedNumber + ", time: " + creationTime);
     Log.d(TAG, "Service state - initialized: " + initialized + ", service: " + (service != null));
     
     if (service == null) {
@@ -249,7 +253,12 @@ public class CallRecorder implements CallList.Listener {
         Log.d(TAG, "Calling service.stopRecording()");
         final CallRecording recording = service.stopRecording();
         if (recording != null) {
-          Log.d(TAG, "Recording stopped successfully: " + recording.toString());
+          // Mask phone number for privacy
+          String maskedNumber = recording.phoneNumber != null && recording.phoneNumber.length() > 4
+              ? "***" + recording.phoneNumber.substring(recording.phoneNumber.length() - 4)
+              : "****";
+          Log.d(TAG, "Recording stopped successfully - phoneNumber: " + maskedNumber 
+              + ", fileName: " + recording.fileName);
           if (!TextUtils.isEmpty(recording.phoneNumber)) {
             new Thread(() -> {
               CallRecordingDataStore dataStore = new CallRecordingDataStore();

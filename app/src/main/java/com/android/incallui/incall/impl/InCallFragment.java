@@ -264,7 +264,17 @@ public class InCallFragment extends Fragment
         // It's not a fixed ID like 'callRecordButton' but managed through ButtonController
         android.util.Log.i("InCallFragment", "==========================================");
         android.util.Log.i("InCallFragment", "BUTTON CONTROLLER STATUS");
-        android.util.Log.i("InCallFragment", "CallRecordButtonController added: " + (getButtonController(InCallButtonIds.BUTTON_RECORD_CALL) != null ? "✓" : "✗"));
+        
+        // Safely check if CallRecordButtonController was added
+        boolean hasRecordController = false;
+        for (ButtonController controller : buttonControllers) {
+            if (controller.getInCallButtonId() == InCallButtonIds.BUTTON_RECORD_CALL) {
+                hasRecordController = true;
+                break;
+            }
+        }
+        android.util.Log.i("InCallFragment", "CallRecordButtonController added: " + (hasRecordController ? "✓" : "✗"));
+        android.util.Log.i("InCallFragment", "Total button controllers: " + buttonControllers.size());
         android.util.Log.i("InCallFragment", "Note: Record button is dynamically assigned to incall_*_button slots");
         android.util.Log.i("InCallFragment", "==========================================");
         
@@ -689,26 +699,34 @@ public class InCallFragment extends Fragment
         
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            // Create indentation more efficiently using StringBuilder
-            StringBuilder indentBuilder = new StringBuilder();
-            for (int j = 0; j < depth * 2; j++) {
-                indentBuilder.append(" ");
-            }
-            String indent = indentBuilder.toString();
             
             for (int i = 0; i < group.getChildCount(); i++) {
                 View child = group.getChildAt(i);
+                StringBuilder logMessage = new StringBuilder();
+                
+                // Add indentation
+                for (int j = 0; j < depth * 2; j++) {
+                    logMessage.append(" ");
+                }
+                logMessage.append("View #").append(i).append(": ");
+                
                 try {
                     // Wrap entire block in try-catch in case getId() throws exception
                     if (child.getId() != View.NO_ID) {
                         String idName = getResources().getResourceEntryName(child.getId());
-                        android.util.Log.i("InCallFragment", indent + "View #" + i + ": " + idName + " (" + child.getClass().getSimpleName() + ")");
+                        logMessage.append(idName);
                     } else {
-                        android.util.Log.i("InCallFragment", indent + "View #" + i + ": NO_ID (" + child.getClass().getSimpleName() + ")");
+                        logMessage.append("NO_ID");
                     }
+                    logMessage.append(" (").append(child.getClass().getSimpleName()).append(")");
                 } catch (Exception e) {
-                    android.util.Log.i("InCallFragment", indent + "View #" + i + ": Error getting ID (" + child.getClass().getSimpleName() + "): " + e.getMessage());
+                    logMessage.append("Error getting ID (")
+                              .append(child.getClass().getSimpleName())
+                              .append("): ")
+                              .append(e.getMessage());
                 }
+                
+                android.util.Log.i("InCallFragment", logMessage.toString());
                 
                 if (child instanceof ViewGroup) {
                     logAllViewIds(child, depth + 1);  // Recursive with depth tracking

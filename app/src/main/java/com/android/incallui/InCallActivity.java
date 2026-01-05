@@ -580,8 +580,9 @@ public class InCallActivity extends TransactionSafeFragmentActivity
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         android.util.Log.i("InCallActivity", "==========================================");
         android.util.Log.i("InCallActivity", "CONFIGURATION CHANGED");
-        android.util.Log.i("InCallActivity", "New orientation: " + 
-            (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ? "LANDSCAPE" : "PORTRAIT"));
+        String orientationStr = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE 
+            ? "LANDSCAPE" : "PORTRAIT";
+        android.util.Log.i("InCallActivity", "New orientation: " + orientationStr);
         android.util.Log.i("InCallActivity", "Screen layout: " + newConfig.screenLayout);
         android.util.Log.i("InCallActivity", "KeyboardHidden: " + newConfig.keyboardHidden);
         android.util.Log.i("InCallActivity", "==========================================");
@@ -593,10 +594,10 @@ public class InCallActivity extends TransactionSafeFragmentActivity
         
         // Update UI for multiwindow mode if needed
         // When in multiwindow mode and dialpad is not allowed, hide it
-        if (isInMultiWindowMode() && !getResources().getBoolean(R.bool.incall_dialpad_allowed)) {
-            if (isDialpadVisible()) {
-                showDialpadFragment(false, false);
-            }
+        if (isInMultiWindowMode() 
+                && !getResources().getBoolean(R.bool.incall_dialpad_allowed) 
+                && isDialpadVisible()) {
+            showDialpadFragment(false, false);
         }
         
         android.util.Log.i("InCallActivity", "Configuration change handled - activity NOT recreated");

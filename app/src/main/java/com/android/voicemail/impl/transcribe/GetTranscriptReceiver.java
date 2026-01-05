@@ -146,7 +146,18 @@ public class GetTranscriptReceiver extends BroadcastReceiver {
     }
 
     private static PendingIntent getPendingIntent(Context context, Intent intent, int flags) {
-        return PendingIntent.getBroadcast(context.getApplicationContext(), 0, intent, flags);
+        // Add FLAG_MUTABLE or FLAG_IMMUTABLE based on the operation type
+        // AlarmManager intents that need to be updated require FLAG_MUTABLE
+        // FLAG_NO_CREATE queries don't modify the intent, so use FLAG_IMMUTABLE
+        int mutabilityFlag;
+        if ((flags & PendingIntent.FLAG_NO_CREATE) != 0) {
+            // For checking if an alarm exists (no modification needed)
+            mutabilityFlag = PendingIntent.FLAG_IMMUTABLE;
+        } else {
+            // For creating/updating alarms (AlarmManager may need to update the intent)
+            mutabilityFlag = PendingIntent.FLAG_MUTABLE;
+        }
+        return PendingIntent.getBroadcast(context.getApplicationContext(), 0, intent, flags | mutabilityFlag);
     }
 
     static void setTranscriptionClientFactoryForTesting(TranscriptionClientFactory factory) {

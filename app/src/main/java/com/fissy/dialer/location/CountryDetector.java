@@ -114,8 +114,9 @@ public class CountryDetector {
         LogUtil.i("CountryDetector.registerForLocationUpdates", "registering for location updates");
 
         final Intent activeIntent = new Intent(context, LocationChangedReceiver.class);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE;
         final PendingIntent pendingIntent =
-                PendingIntent.getBroadcast(context, 0, activeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.getBroadcast(context, 0, activeIntent, flags);
 
         locationManager.requestLocationUpdates(
                 LocationManager.PASSIVE_PROVIDER,

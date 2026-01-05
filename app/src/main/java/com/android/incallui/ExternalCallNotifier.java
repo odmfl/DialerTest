@@ -283,6 +283,7 @@ public class ExternalCallNotifier implements ExternalCallList.ExternalCallListen
                             NotificationBroadcastReceiver.class);
             intent.putExtra(
                     NotificationBroadcastReceiver.EXTRA_NOTIFICATION_ID, info.getNotificationId());
+            int flags = PendingIntent.FLAG_IMMUTABLE;
             builder.addAction(
                     new Notification.Action.Builder(
                             R.drawable.quantum_ic_call_white_24,
@@ -290,7 +291,7 @@ public class ExternalCallNotifier implements ExternalCallList.ExternalCallListen
                                     isVideoCall
                                             ? R.string.notification_take_video_call
                                             : R.string.notification_take_call),
-                            PendingIntent.getBroadcast(context, info.getNotificationId(), intent, 0))
+                            PendingIntent.getBroadcast(context, info.getNotificationId(), intent, flags))
                             .build());
         }
 

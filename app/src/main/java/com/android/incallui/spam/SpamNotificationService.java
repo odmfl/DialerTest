@@ -197,8 +197,9 @@ public class SpamNotificationService extends Service {
                         SpamNotificationActivity.ACTION_SHOW_SPAM_BLOCKING_PROMO_DIALOG,
                         notificationTag,
                         notificationId);
+        int flags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getActivity(
-                this, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
+                this, (int) System.currentTimeMillis(), intent, flags);
     }
 
     private PendingIntent createEnableSpamBlockingPendingIntent() {
@@ -209,7 +210,8 @@ public class SpamNotificationService extends Service {
                         SpamNotificationActivity.ACTION_ENABLE_SPAM_BLOCKING,
                         notificationTag,
                         notificationId);
+        int flags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE;
         return PendingIntent.getService(
-                this, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_ONE_SHOT);
+                this, (int) System.currentTimeMillis(), intent, flags);
     }
 }

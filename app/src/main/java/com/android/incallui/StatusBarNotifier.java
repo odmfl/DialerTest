@@ -176,7 +176,8 @@ public class StatusBarNotifier
      */
     private static PendingIntent createNotificationPendingIntent(Context context, String action) {
         final Intent intent = new Intent(action, null, context, NotificationBroadcastReceiver.class);
-        return PendingIntent.getBroadcast(context, 0, intent, 0);
+        int flags = PendingIntent.FLAG_IMMUTABLE;
+        return PendingIntent.getBroadcast(context, 0, intent, flags);
     }
 
     /**
@@ -1088,7 +1089,8 @@ public class StatusBarNotifier
         // and clicks the notification's expanded view.  It's also used to
         // launch the InCallActivity immediately when when there's an incoming
         // call (see the "fullScreenIntent" field below).
-        return PendingIntent.getActivity(context, requestCode, intent, 0);
+        int flags = PendingIntent.FLAG_IMMUTABLE;
+        return PendingIntent.getActivity(context, requestCode, intent, flags);
     }
 
     private void setStatusBarCallListener(StatusBarCallListener listener) {

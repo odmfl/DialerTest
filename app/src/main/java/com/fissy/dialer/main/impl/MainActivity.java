@@ -45,7 +45,8 @@ public class MainActivity extends TransactionSafeActivity
         // TODO(calderwoodra): remove these 2 interfaces when we migrate to new speed dial fragment
         InteractionErrorListener,
         DisambigDialogDismissedListener,
-        PermissionDialogFragment.PermissionDialogListener {
+        PermissionDialogFragment.PermissionDialogListener,
+        WriteSettingsWarningDialogFragment.WriteSettingsWarningListener {
 
     private MainActivityPeer activePeer;
     private PermissionManager permissionManager;
@@ -245,6 +246,16 @@ public class MainActivity extends TransactionSafeActivity
             public void onDefaultDialerRoleResult(boolean granted) {
                 LogUtil.i("MainActivity", "Default dialer role: " + granted);
             }
+
+            @Override
+            public void onFullScreenIntentPermissionResult(boolean granted) {
+                LogUtil.i("MainActivity", "Full-screen intent permission: " + granted);
+            }
+
+            @Override
+            public void onWriteSettingsPermissionResult(boolean granted) {
+                LogUtil.i("MainActivity", "Write settings permission: " + granted);
+            }
         });
     }
 
@@ -277,5 +288,47 @@ public class MainActivity extends TransactionSafeActivity
     public void onPermissionsDenied() {
         // User declined to grant permissions
         LogUtil.i("MainActivity", "User declined permissions");
+    }
+
+    @Override
+    public void onWriteSettingsAllowed() {
+        // User agreed to grant WRITE_SETTINGS, launch settings
+        LogUtil.i("MainActivity", "User agreed to grant WRITE_SETTINGS");
+        permissionManager.requestWriteSettingsPermission(new PermissionManager.PermissionCallback() {
+            @Override
+            public void onPermissionsGranted(Map<String, Boolean> results) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onDefaultDialerRoleResult(boolean granted) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onFullScreenIntentPermissionResult(boolean granted) {
+                // Not used for write settings
+            }
+
+            @Override
+            public void onWriteSettingsPermissionResult(boolean granted) {
+                LogUtil.i("MainActivity", "Write settings permission result: " + granted);
+            }
+        });
+    }
+
+    @Override
+    public void onWriteSettingsCancelled() {
+        // User cancelled WRITE_SETTINGS request
+        LogUtil.i("MainActivity", "User cancelled WRITE_SETTINGS request");
+    }
+
+    /**
+     * Show warning dialog for WRITE_SETTINGS permission
+     */
+    public void showWriteSettingsWarningDialog() {
+        WriteSettingsWarningDialogFragment dialog = WriteSettingsWarningDialogFragment.newInstance();
+        dialog.setListener(this);
+        dialog.show(getSupportFragmentManager(), "write_settings_warning");
     }
 }

@@ -149,22 +149,36 @@ public class CallRecorderService extends Service {
       audioSourceSet = true;
       if (DBG) Log.d(TAG, "Successfully set audio source: " + audioSource);
     } catch (IllegalStateException e) {
-      Log.w(TAG, "Primary audio source " + audioSource + " not available, trying fallbacks", e);
+      Log.w(TAG, "Primary audio source not available, trying fallbacks", e);
+      
+      // Clean up failed MediaRecorder
+      try {
+        mMediaRecorder.release();
+      } catch (Exception ex) {
+        // Ignore cleanup errors
+      }
       
       // Fallback 1: Try VOICE_RECOGNITION (most compatible for non-system apps)
       try {
         audioSource = MediaRecorder.AudioSource.VOICE_RECOGNITION;
-        mMediaRecorder.reset();
+        mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(audioSource);
         audioSourceSet = true;
         Log.d(TAG, "Using fallback VOICE_RECOGNITION audio source");
       } catch (IllegalStateException e2) {
         Log.w(TAG, "VOICE_RECOGNITION not available, trying MIC", e2);
         
+        // Clean up failed MediaRecorder
+        try {
+          mMediaRecorder.release();
+        } catch (Exception ex) {
+          // Ignore cleanup errors
+        }
+        
         // Fallback 2: Try MIC (works on all devices)
         try {
           audioSource = MediaRecorder.AudioSource.MIC;
-          mMediaRecorder.reset();
+          mMediaRecorder = new MediaRecorder();
           mMediaRecorder.setAudioSource(audioSource);
           audioSourceSet = true;
           Log.d(TAG, "Using fallback MIC audio source");

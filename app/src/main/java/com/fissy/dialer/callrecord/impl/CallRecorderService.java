@@ -209,7 +209,6 @@ public class CallRecorderService extends Service {
       }
     } catch (IllegalStateException e) {
       Log.w(TAG, "Error initializing media recorder", e);
-      mMediaRecorder.reset();
       mMediaRecorder.release();
       mMediaRecorder = null;
       return false;
@@ -245,7 +244,6 @@ public class CallRecorderService extends Service {
       }
     }
 
-    mMediaRecorder.reset();
     mMediaRecorder.release();
     mMediaRecorder = null;
 
